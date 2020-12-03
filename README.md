@@ -1,5 +1,5 @@
 # WebCrawler 🕸️
-
+![](https://img.shields.io/badge/<Code>-<Java>-informational?style=flat&logo=<Java>&logoColor=white&color=2bbc8a)
 # Overview
 
 # Installer
