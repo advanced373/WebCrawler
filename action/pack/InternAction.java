@@ -1,8 +1,8 @@
 package action.pack;
 
-import javax.swing.Action;
 
-public abstract class InternAction implements Action {
+
+public abstract class InternAction extends Action {
 
     public abstract boolean runAction();
 }
