@@ -1,12 +1,14 @@
 package file_handlers;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
  * Class implementing work with different file types
  * @author Stoica Mihai
  */
+
 abstract public class FileWork {
     /** type of file */
     private int type;
@@ -22,7 +24,7 @@ abstract public class FileWork {
      * Function responsible for writing data to file (it depends on file type)
      * @param value is absolute path to file
      */
-    protected abstract void write(String value);
+    protected abstract void write(String fileName, String data) throws IOException;
     /**
      * Function responsible for searching a word in file
      * @param word is a keyword
