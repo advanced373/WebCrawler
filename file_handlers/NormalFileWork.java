@@ -20,7 +20,7 @@ public class NormalFileWork extends FileWork{
      * @return list( type ArrayList ) of data
      */
     @Override
-    protected ArrayList<String> read(String fileName) throws FileNotFoundException {
+    public ArrayList<String> read(String fileName) throws FileNotFoundException {
         ArrayList<String> lines = new ArrayList<>();
         try {
             File myObj = new File(fileName);
@@ -45,7 +45,7 @@ public class NormalFileWork extends FileWork{
      * @param data is the data string to be written
      */
     @Override
-    protected void write(String fileName, String data) throws IOException{
+    public void write(String fileName, String data) throws IOException{
 
         try {
             FileWriter myWriter = new FileWriter(fileName);
@@ -64,7 +64,7 @@ public class NormalFileWork extends FileWork{
      * @return list of data (it depends of file type)
      */
     @Override
-    protected ArrayList<String> search(String word) {
+    public ArrayList<String> search(String word) {
         return null;
     }
 
@@ -75,7 +75,7 @@ public class NormalFileWork extends FileWork{
      * @return list of filtered data (it depends on file type)
      */
     @Override
-    protected ArrayList<String> filter(String filter) {
+    public ArrayList<String> filter(String filter) {
         return null;
     }
 }
