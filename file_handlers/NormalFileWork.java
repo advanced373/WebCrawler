@@ -34,7 +34,7 @@ public class NormalFileWork extends FileWork{
             //System.out.println("Successfully read from file " + fileName );
             myReader.close();
         } catch (FileNotFoundException e) {
-            throw new CrawlerException();
+            throw e;
         }
 
         return lines;
