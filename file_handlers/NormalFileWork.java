@@ -1,5 +1,7 @@
 package file_handlers;
 
+import action.pack.CrawlerException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -32,7 +34,7 @@ public class NormalFileWork extends FileWork{
             //System.out.println("Successfully read from file " + fileName );
             myReader.close();
         } catch (FileNotFoundException e) {
-            throw e;
+            throw new CrawlerException();
         }
 
         return lines;
