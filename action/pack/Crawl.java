@@ -6,27 +6,46 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-import  file_handlers.FileWork;
-import file_handlers.FileWorker;
-import file_handlers.NormalFileWork;
+
+import file_handlers.*;
+
+/**
+ * This class implements the download process starting from a file with URLs
+ * @author Rosca Stefan
+ */
 
 public class Crawl extends ExternAction{
 
-
+    /** seed URLs */
     private List<String> urlsToCrawl =new ArrayList<>();
+    /** processing queue */
     private LinkedBlockingQueue<String> linksQueue=new LinkedBlockingQueue<>();
     private ExecutorService executorService;
+    /** the number of threads in the pool*/
     private Integer numThreads;
+    /** root directory where save downloaded pages */
     private String rootDir;
+    /** After each downloaded page it will wait a period depending on the value of this parameter */
     private Integer delay;
+    /** */
     private Integer logLevel;
+    /** the maximum number of pages that can be downloaded*/
     private Integer depth;
 
     private CyclicBarrier cyclicBarrier;
 
+
+    /** the name of the configuration file */
     public String fileNameConf;
+    /** the name of the file with the seed urls */
     public String fileNameUrlList;
 
+
+    /** CrawlTask constructor
+     * @param fileNameConf the name of the configuration file
+     * @param fileNameUrlList the name of the file with the seed urls
+     * @throws FileNotFoundException  when there is a problem opening a file
+     */
 
     public Crawl(String fileNameConf, String fileNameUrlList) throws FileNotFoundException {
         this.fileNameConf = fileNameConf;
@@ -49,11 +68,20 @@ public class Crawl extends ExternAction{
 
     }
 
+
+    /**
+     * This method call execute function
+     */
     @Override
     public boolean runAction() {
         this.execute();
         return false;
     }
+
+    /**
+     * This method initializes a pool of threads and allows
+     * each thread to download one page at a time.
+     */
 
     public void execute() {
 
@@ -93,6 +121,16 @@ public class Crawl extends ExternAction{
         }
     }
 
+    /**
+     * This method parses the configuration parameters and initializes them
+     * @param param
+     * @param numThreads
+     * @param delay
+     * @param rootDir
+     * @param logLevel
+     * @param depth
+     */
+
     private void parseParam( ArrayList<String> param,int numThreads,int delay,String rootDir,int logLevel,int depth){
 
         if(param.size()!=5){
@@ -107,6 +145,10 @@ public class Crawl extends ExternAction{
         depth=Integer.parseInt(param.get(4));
 
     }
+
+    /**
+     * This method initializes the processing queue
+     */
 
     private void initProcessQueue(){
         for (String s: this.urlsToCrawl){
