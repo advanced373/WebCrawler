@@ -31,10 +31,13 @@ public class Util {
 
 
         if (resource.startsWith("../"))
-            if (finalUrl.endsWith("/"))
-                finalUrl = finalUrl + resource.substring(3);
-            else
-                finalUrl = finalUrl + resource.substring(4);
+            if (finalUrl.endsWith("/")) {
+                finalUrl=finalUrl.substring(0,finalUrl.length()-1);
+                finalUrl = finalUrl.substring(0,finalUrl.lastIndexOf("/"))+ resource.substring(2);
+            }
+            else {
+                finalUrl = finalUrl.substring(0,finalUrl.lastIndexOf("/"))+ resource.substring(2);
+            }
 
         return finalUrl;
     }
