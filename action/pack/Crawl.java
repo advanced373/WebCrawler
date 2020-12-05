@@ -4,9 +4,7 @@ package action.pack;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 import  file_handlers.FileWork;
 import file_handlers.FileWorker;
@@ -24,6 +22,8 @@ public class Crawl extends ExternAction{
     private Integer logLevel;
     private Integer depth;
 
+    private CyclicBarrier cyclicBarrier;
+
     public String fileNameConf;
     public String fileNameUrlList;
 
@@ -31,6 +31,7 @@ public class Crawl extends ExternAction{
     public Crawl(String fileNameConf, String fileNameUrlList) throws FileNotFoundException {
         this.fileNameConf = fileNameConf;
         this.fileNameUrlList = fileNameUrlList;
+        this.cyclicBarrier=new CyclicBarrier(2);
 
         FileWorker fileWorker= new FileWorker();
 
@@ -61,14 +62,32 @@ public class Crawl extends ExternAction{
 
         int countPagesDownload=0;
 
-        while (!this.linksQueue.isEmpty()){
+        while (!this.linksQueue.isEmpty()||countPagesDownload<this.depth){
             try {
                 String currentURL=linksQueue.take();
 
-                CrawlTask crawlTask=new CrawlTask(currentURL,this);
+                CrawlTask crawlTask=new CrawlTask(currentURL,this,this.delay);
                 this.executorService.submit(crawlTask);
 
+                synchronized (this){
+                    countPagesDownload++;
+                }
+
+                if(this.linksQueue.isEmpty()){
+                    this.cyclicBarrier.await();
+                }
+
             }catch (InterruptedException interruptedException){
+                interruptedException.printStackTrace();
+            }catch (BrokenBarrierException brokenBarrierException){
+                brokenBarrierException.printStackTrace();
+            }
+
+            this.executorService.shutdown();
+
+            try {
+                this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            }catch (InterruptedException interruptedException) {
                 interruptedException.printStackTrace();
             }
         }
