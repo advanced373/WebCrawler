@@ -2,6 +2,7 @@ package file_handlers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 /**
@@ -19,7 +20,7 @@ abstract public class FileWork {
      * @param fileName is absolute path to file
      * @return list of data (it depends on file type)
      */
-    protected abstract ArrayList<String> read(String fileName) throws FileNotFoundException;
+    protected abstract ArrayList<String> read(String fileName) throws FileNotFoundException, MalformedURLException;
     /**
      * Function responsible for writing data to file (it depends on file type)
      * @param fileName is absolute path to file
