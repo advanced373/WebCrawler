@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class NormalFileWork extends FileWork{
     /**
-     * Function responsible for reading content of a normal file
+     * Function responsible for reading URLs from file.
      *
      * @param fileName is absolute path to file
      * @return list( type ArrayList ) of data
