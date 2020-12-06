@@ -157,7 +157,7 @@ public class FileWorker {
         } catch(FileNotFoundException e) {
             throw e;
         }
-
+        
         fileWork = new IndexFileWork();
         fileWork.write(indexFilePath, strToWrite);
     }
