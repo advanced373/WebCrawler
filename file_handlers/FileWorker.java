@@ -260,8 +260,8 @@ public class FileWorker {
         }
 
         return returnEntry;
-        fileWork = new IndexFileWorker();
-        fileWork.write(indexFilePath, strToWrite);
+        //fileWork = new IndexFileWork();
+        //fileWork.write(indexFilePath, strToWrite);
     }
   
     /**
@@ -274,7 +274,7 @@ public class FileWorker {
      *         or null in case that keyword doesn't exist
      */
 
-    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) {
+    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) throws FileNotFoundException {
 
         String indexFilePath = pathToRootFolder + "/index.json";
 

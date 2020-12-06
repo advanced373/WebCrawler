@@ -25,6 +25,7 @@ public class HTMLFileWork extends FileWork{
         File inFile = new File(fileName);
         Pattern pattern;
         Matcher matcher;
+        String fileNameCopy = fileName;
         pattern=Pattern.compile("([^\\\\s]+(\\\\.(?i)(html|php))$)");
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
@@ -38,11 +39,21 @@ public class HTMLFileWork extends FileWork{
             matcher= pattern.matcher(data);
             int i=0;
             String helperNormalization;
+            String parts[];
             while (matcher.find()) {
-                    helperNormalization = Util.normalize(matcher.group(1));
-                    URLs.add(helperNormalization);
-                    i++;
-                }
+                parts=fileNameCopy.split("\\\\");
+                helperNormalization = Util.URLProcessing(parts[parts.length-1],matcher.group(1));
+                URLs.add(helperNormalization);
+                i++;
+            }
+            pattern= Pattern.compile("src=\"(.*?)\"");
+            matcher= pattern.matcher(data);
+            while (matcher.find()) {
+                parts=fileNameCopy.split("\\\\");
+                helperNormalization = Util.URLProcessing(parts[parts.length-1],matcher.group(1));
+                URLs.add(helperNormalization);
+                i++;
+            }
         }
         return URLs;
     }
@@ -106,4 +117,5 @@ public class HTMLFileWork extends FileWork{
     protected ArrayList<String> filter(String pathToFile, String filter) {
         return null;
     }
+
 }
