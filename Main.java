@@ -1,5 +1,7 @@
 package action.pack;
 
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.EnumSet;
 
 class Main {
@@ -28,7 +30,7 @@ class Main {
 
     public static void main(String[] args)
     {
-        //de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
+        /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
         if(args.length < 1)
         {
             //nr gresit de parametrii
@@ -43,6 +45,18 @@ class Main {
         if(!loggerObj.runAction())
         {
             //rularea actiunii a esuat
+        }*/
+        ArrayList<String> param=new ArrayList<>();
+        param.add("yes");
+        param.add("pdf");
+        param.add("png");
+
+        try {
+            IAction action=new Crawl("","file.conf","seed.txt",param);
+            action.runAction();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
+
     }
 }

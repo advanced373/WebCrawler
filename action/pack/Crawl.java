@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.*;
 
 
 import file_handlers.*;
@@ -106,7 +107,7 @@ public class Crawl extends ExternAction{
 
         int countPagesDownload=0;
 
-        while (!this.linksQueue.isEmpty()||countPagesDownload<this.depth){
+        while (!this.linksQueue.isEmpty() && countPagesDownload<this.depth){
             try {
                 String currentURL=linksQueue.take();
 
@@ -114,7 +115,7 @@ public class Crawl extends ExternAction{
                     continue;
                 this.visitedLinks.add(currentURL);
 
-                CrawlTask crawlTask=new CrawlTask(currentURL,this,this.delay);
+                CrawlTask crawlTask=new CrawlTask(currentURL,this,this.delay,this.rootDir);
                 this.executorService.submit(crawlTask);
 
                 synchronized (this){
@@ -122,13 +123,13 @@ public class Crawl extends ExternAction{
                 }
 
                 if(this.linksQueue.isEmpty()){
-                    this.cyclicBarrier.await();
+                    cyclicBarrier.await();
                 }
 
             }catch (InterruptedException interruptedException){
                 interruptedException.printStackTrace();
-            }catch (BrokenBarrierException brokenBarrierException){
-                brokenBarrierException.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
             }
         }
 
@@ -184,11 +185,12 @@ public class Crawl extends ExternAction{
      * @throws CrawlerException when size of param differ from 5
      */
 
-    private void parseParam( ArrayList<String> param,int numThreads,int delay,String rootDir,int logLevel,int depth) throws CrawlerException {
+    private void parseParam( ArrayList<String> param,Integer numThreads,Integer delay,String rootDir,Integer logLevel,Integer depth) throws CrawlerException {
 
         if(param.size()!=5){
             throw new CrawlerException("100","The number of configuration parameters is different from 5.");
         }
+
 
         setNumThreads(Integer.parseInt(param.get(0).substring(10)));
         setDelay(Integer.parseInt(param.get(1).substring(6)));
@@ -204,7 +206,8 @@ public class Crawl extends ExternAction{
 
     private void initProcessQueue(){
         for (String s: this.urlsToCrawl){
-            linksQueue.add(s);
+            if(this.isValidUrl(s))
+                linksQueue.add(s);
         }
     }
 
@@ -219,7 +222,32 @@ public class Crawl extends ExternAction{
         if(this.visitedLinks.contains(url))
             return false;
         if(Util.checkUrlExtension(this.extension,url))
-            return false;
-        return true;
+            return true;
+        return false;
     }
+
+    /**
+     * Check that the URL format is valid
+     * @param url contains value of url
+     * @return true if url is valid else false
+     */
+
+    private boolean isValidUrl(String url){
+
+        String regex = "((http|https)://)(www.)?"
+                    + "[a-zA-Z0-9@:%._\\+~#?&//=]"
+                    + "{2,256}\\.[a-z]"
+                    + "{2,6}\\b([-a-zA-Z0-9@:%"
+                    + "._\\+~#?&//=]*)";
+
+        Pattern p = Pattern.compile(regex);
+        if (url == null) {
+            return false;
+        }
+
+        Matcher m = p.matcher(url);
+
+        return m.matches();
+    }
+
 }

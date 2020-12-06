@@ -1,9 +1,9 @@
 package action.pack;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * Implement the class that downloads the page from a URL
@@ -20,6 +20,7 @@ public class CrawlTask implements Runnable{
     private String urlToCrawl;
     private Crawl webCrawler;
     private Integer delay;
+    private String rootDir;
 
     /** CrawlTask constructor
      * @param urlToCrawl The URL where the page is downloaded
@@ -27,10 +28,11 @@ public class CrawlTask implements Runnable{
      * @param delay After each downloaded page it will wait a period depending on the value of this parameter
      */
 
-    public CrawlTask(String urlToCrawl, Crawl webCrawler, Integer delay) {
+    public CrawlTask(String urlToCrawl, Crawl webCrawler, Integer delay,String rootDir) {
         this.urlToCrawl = urlToCrawl;
         this.webCrawler = webCrawler;
         this.delay = delay;
+        this.rootDir=rootDir;
     }
 
     /**
@@ -55,20 +57,58 @@ public class CrawlTask implements Runnable{
         URL url=new URL(this.urlToCrawl);
 
         try{
-            URLConnection urlConnection=null;
-            urlConnection=url.openConnection();
+            InputStream inputStream=url.openStream();
 
-            InputStream inputStream=urlConnection.getInputStream();
+            String path;
+            if(url.getPath().isEmpty()){
+                path = rootDir + '/' + url.getHost() + '/'+url.getHost();
+            }else {
+                path = rootDir + '/' + url.getHost() +'/' +url.getPath();
+            }
 
-            //extract URL din pagina
-            //add in queue
+            this.writePage(path,inputStream);
 
-            Thread.sleep(this.delay);
+            //adaugare exragere link
+
+           inputStream.close();
+
+            if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1)
+                this.webCrawler.cyclicBarrier.await();
+
+           Thread.sleep(this.delay);
 
         }catch (IOException  exception){
             throw new RuntimeException("Error connecting to URL",exception);
         }catch (InterruptedException exception){
             throw new RuntimeException("Error runtime",exception);
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * This method is responsible with write data in file
+     * @param path the absolute path where the downloaded page will be stored
+     * @param inputStream page data
+     * @throws IOException
+     */
+
+    private void writePage(String path,InputStream inputStream) throws IOException {
+        File file = new File(path);
+        if(!file.exists()){
+
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+
+
+            OutputStream outputStream=new FileOutputStream(file);
+            int read;
+            byte[] bytes=new byte[1024];
+            while ((read=inputStream.read(bytes))!=-1){
+                outputStream.write(bytes,0,read);
+            }
+            outputStream.close();
+
         }
     }
 }
