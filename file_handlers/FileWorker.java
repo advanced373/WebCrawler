@@ -277,7 +277,7 @@ public class FileWorker {
      *         or null in case that keyword doesn't exist
      */
 
-    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) {
+    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) throws FileNotFoundException {
 
         String indexFilePath = pathToRootFolder + "/index.json";
 
