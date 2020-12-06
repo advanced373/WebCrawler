@@ -1,4 +1,5 @@
 package file_handlers;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,6 +45,7 @@ public class FileWorker {
      */
 
     public static void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
+
         String indexFilePath = pathToRootFolder + "/index.json";
 
         if(dataArray.isEmpty())
@@ -155,6 +157,9 @@ public class FileWorker {
         } catch(FileNotFoundException e) {
             throw e;
         }
+        
+        fileWork = new IndexFileWork();
+        fileWork.write(indexFilePath, strToWrite);
     }
 
     /**
@@ -260,8 +265,6 @@ public class FileWorker {
         }
 
         return returnEntry;
-        //fileWork = new IndexFileWork();
-        //fileWork.write(indexFilePath, strToWrite);
     }
   
     /**
