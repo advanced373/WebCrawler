@@ -110,6 +110,10 @@ public class Crawl extends ExternAction{
             try {
                 String currentURL=linksQueue.take();
 
+                if(!this.checkURL(currentURL))
+                    continue;
+                this.visitedLinks.add(currentURL);
+
                 CrawlTask crawlTask=new CrawlTask(currentURL,this,this.delay);
                 this.executorService.submit(crawlTask);
 
@@ -138,6 +142,7 @@ public class Crawl extends ExternAction{
         }
         return false;
     }
+
 
     public void setNumThreads(Integer numThreads) {
         this.numThreads = numThreads;
@@ -176,6 +181,7 @@ public class Crawl extends ExternAction{
      * @param rootDir
      * @param logLevel
      * @param depth
+     * @throws CrawlerException when size of param differ from 5
      */
 
     private void parseParam( ArrayList<String> param,int numThreads,int delay,String rootDir,int logLevel,int depth) throws CrawlerException {
@@ -200,5 +206,20 @@ public class Crawl extends ExternAction{
         for (String s: this.urlsToCrawl){
             linksQueue.add(s);
         }
+    }
+
+    /**
+     * This method check if url already been visited or extension is ok
+     * @param url
+     * @return true if the url has not been visited or the extension is allowed else false
+     */
+
+    private boolean checkURL(String url){
+
+        if(this.visitedLinks.contains(url))
+            return false;
+        if(Util.checkUrlExtension(this.extension,url))
+            return false;
+        return true;
     }
 }

@@ -152,4 +152,20 @@ public class Util {
         }
     }
 
+    private static String getFileExtension(String url) {
+        if(url.lastIndexOf(".") != -1 && url.lastIndexOf(".") != 0)
+            return url.substring(url.lastIndexOf(".")+1);
+        else return "";
+    }
+
+    public static boolean checkUrlExtension(ArrayList<String > allExtension,String url){
+        String extension=getFileExtension(url);
+        if(extension!=""){
+            for (String ext:allExtension)
+                if(ext.equals(extension))
+                    return true;
+        }
+        return false;
+    }
+
 }
