@@ -43,8 +43,7 @@ public class FileWorker {
      *         FileNotFoundException if the file doesn't exist
      */
 
-    public void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
-
+    public static void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
         String indexFilePath = pathToRootFolder + "/index.json";
 
         if(dataArray.isEmpty())
@@ -156,10 +155,6 @@ public class FileWorker {
         } catch(FileNotFoundException e) {
             throw e;
         }
-
-        //write the updated data to index.json file
-        fileWork = new IndexFileWork();
-        fileWork.write(indexFilePath, strToWrite);
     }
 
     /**
@@ -265,8 +260,10 @@ public class FileWorker {
         }
 
         return returnEntry;
+        fileWork = new IndexFileWorker();
+        fileWork.write(indexFilePath, strToWrite);
     }
-
+  
     /**
      * Function responsible searching an keyword in index.json file
      *
