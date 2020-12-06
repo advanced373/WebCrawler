@@ -158,7 +158,6 @@ public class FileWorker {
             throw e;
         }
 
-        //write the updated data to index.json file
         fileWork = new IndexFileWork();
         fileWork.write(indexFilePath, strToWrite);
     }
@@ -267,7 +266,7 @@ public class FileWorker {
 
         return returnEntry;
     }
-
+  
     /**
      * Function responsible searching an keyword in index.json file
      *
