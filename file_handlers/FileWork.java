@@ -32,11 +32,11 @@ abstract public class FileWork {
      * @param word is a keyword
      * @return list of data (it depends of file type)
      */
-    protected abstract ArrayList<String> search(String word);
+    protected abstract ArrayList<String> search(String pathToFile, String word);
     /**
      * Function responsible for filtering values from file (it depends on file type)
      * @param filter is a word by which we are filtering data from file
      * @return list of filtered data (it depends on file type)
      */
-    protected abstract ArrayList<String> filter(String filter);
+    protected abstract ArrayList<String> filter(String pathToFile, String filter);
 }

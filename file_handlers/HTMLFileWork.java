@@ -98,12 +98,12 @@ public class HTMLFileWork extends FileWork{
     }
 
     @Override
-    protected ArrayList<String> search(String word) {
+    protected ArrayList<String> search(String pathToFile, String word) {
         return null;
     }
 
     @Override
-    protected ArrayList<String> filter(String filter) {
+    protected ArrayList<String> filter(String pathToFile, String filter) {
         return null;
     }
 }
