@@ -1,8 +1,11 @@
 package file_handlers;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 
 /**
@@ -153,8 +156,8 @@ public class FileWorker {
         }
 
         //write the updated data to index.json file
-        fileWork = new IndexFileWorker();
-        fileWork.write(indexFilePath, strToWrite);
+       // fileWork = new IndexFileWorker();
+       // fileWork.write(indexFilePath, strToWrite);
     }
 
     public void readFromIndexFile(String siteURL, String argument) {

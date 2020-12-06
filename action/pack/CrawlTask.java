@@ -11,7 +11,7 @@ import java.util.concurrent.BrokenBarrierException;
  */
 
 
-public class CrawlTask implements Runnable{
+public abstract class CrawlTask implements Runnable{
 
     /**
      * Member decription
@@ -26,6 +26,7 @@ public class CrawlTask implements Runnable{
      * @param urlToCrawl The URL where the page is downloaded
      * @param webCrawler Represents an instance of the main class of the download process
      * @param delay After each downloaded page it will wait a period depending on the value of this parameter
+     * @param rootDir the directory where the download pages are stored
      */
 
     public CrawlTask(String urlToCrawl, Crawl webCrawler, Integer delay,String rootDir) {
@@ -39,21 +40,15 @@ public class CrawlTask implements Runnable{
      * This method call crawl function
      */
 
-    @Override
-    public void run() {
-        try{
-            crawl();
-        }catch (Exception exception){
 
-        }
-    }
+    public abstract void run();
 
     /**
      * This method downloads the page from the URL
      * @throws IOException when there is a connection problem
      */
 
-    private void crawl() throws IOException {
+    protected void crawl() throws IOException {
         URL url=new URL(this.urlToCrawl);
 
         try{

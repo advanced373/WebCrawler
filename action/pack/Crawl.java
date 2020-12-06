@@ -115,7 +115,7 @@ public class Crawl extends ExternAction{
                     continue;
                 this.visitedLinks.add(currentURL);
 
-                CrawlTask crawlTask=new CrawlTask(currentURL,this,this.delay,this.rootDir);
+                CrawlTask crawlTask=new CrawlTaskNormal(currentURL,this,this.delay,this.rootDir);
                 this.executorService.submit(crawlTask);
 
                 synchronized (this){
