@@ -1,16 +1,14 @@
 package file_handlers;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-<<<<<<< HEAD
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-=======
->>>>>>> 8c53d1bcef393fc71e9860108d2fd5834d451b8c
 
 
 /**
@@ -46,11 +44,7 @@ public class FileWorker {
      *         FileNotFoundException if the file doesn't exist
      */
 
-<<<<<<< HEAD
-    public void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
-=======
     public static void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
->>>>>>> 8c53d1bcef393fc71e9860108d2fd5834d451b8c
 
         String indexFilePath = pathToRootFolder + "/index.json";
 
@@ -165,7 +159,6 @@ public class FileWorker {
         }
 
         //write the updated data to index.json file
-<<<<<<< HEAD
         fileWork = new IndexFileWork();
         fileWork.write(indexFilePath, strToWrite);
     }
@@ -273,13 +266,6 @@ public class FileWorker {
         }
 
         return returnEntry;
-=======
-        fileWork = new IndexFileWorker();
-        fileWork.write(indexFilePath, strToWrite);
-    }
-
-    public void readFromIndexFile(String siteURL, String argument) {
->>>>>>> 8c53d1bcef393fc71e9860108d2fd5834d451b8c
     }
 
     /**
