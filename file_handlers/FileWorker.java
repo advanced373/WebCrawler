@@ -1,8 +1,13 @@
 package file_handlers;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -39,7 +44,6 @@ public class FileWorker {
      */
 
     public static void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
-
         String indexFilePath = pathToRootFolder + "/index.json";
 
         if(dataArray.isEmpty())
@@ -151,16 +155,131 @@ public class FileWorker {
         } catch(FileNotFoundException e) {
             throw e;
         }
+    }
 
-        //write the updated data to index.json file
+    /**
+     * Function responsible for read an entry corresponding to a given URL
+     *
+     * @author Vlijia Stefan
+     * @param  siteURL the URL for which we want to get the corresponding
+     *                 entry from index.json file
+     * @param  pathToRootFolder is absolute path to the root folder
+     * @return a ArrayList with the data corresponding to the entry or null
+     *         if no entry exist
+     * @throws FileNotFoundException if the index file isn't found and
+     *         MalformedURLException if the given URL is wrong
+     */
+
+    public ArrayList<String> readFromIndexFile(String siteURL, String pathToRootFolder) throws FileNotFoundException, MalformedURLException {
+        String indexFilePath = pathToRootFolder + "/index.json";
+        ArrayList<String> returnEntry = new ArrayList<>();
+
+        //read entire content of index.json
+        fileWork = new IndexFileWork();
+        ArrayList<String> content = fileWork.read(indexFilePath);
+
+        //firstly we search the index for the given URL
+        int index = -1;
+        for(int i = 0; i<content.size(); i++)
+        {
+            if(content.get(i).contains(siteURL))
+            {
+                index = i;
+                break;
+            }
+        }
+
+        //if exist we will extract entire entry and put the data in an ArrayList
+        if(index != -1)
+        {
+            String line = new String();
+            Pattern p = Pattern.compile("\"([^\"]*)\"");
+
+            for(int i = index; i<content.size(); i++)
+            {
+                line = content.get(i);
+                if(line.contains(siteURL))
+                {
+                    returnEntry.add(siteURL);
+                }
+
+                if(line.contains("keywords") || line.contains("images") || line.contains("documents"))
+                {
+                    i++;
+                    if(line.contains("keywords"))
+                    {
+                        returnEntry.add("keywords");
+                    }
+
+                    if(line.contains("images"))
+                    {
+                        returnEntry.add("images");
+                    }
+
+                    if(line.contains("documents"))
+                    {
+                        returnEntry.add("documents");
+                    }
+
+                    int keywordsNr = i;
+                    line = content.get(keywordsNr);
+                    while(!line.contains("]")){
+                        line = content.get(keywordsNr);
+                        keywordsNr++;
+                    }
+
+                    returnEntry.add(Integer.toString(keywordsNr - i - 1));
+
+                    for(int j = i; j<keywordsNr - 1; j++)
+                    {
+                        line = content.get(j);
+                        Matcher m = p.matcher(line);
+                        if(m.find()) {
+                            returnEntry.add(m.group(1));
+                        }
+                    }
+                    i = keywordsNr - 1;
+                }
+
+                if(line.contains("sitemap"))
+                {
+                    returnEntry.add("sitemap");
+                    Matcher m = p.matcher(line);
+                    m.find();
+                    if(m.find()) {
+                        returnEntry.add(m.group(1));
+                    }
+                    break;
+                }
+
+            }
+        }
+        else
+        {
+            return null;
+        }
+
+        return returnEntry;
         fileWork = new IndexFileWorker();
         fileWork.write(indexFilePath, strToWrite);
     }
+  
+    /**
+     * Function responsible searching an keyword in index.json file
+     *
+     * @author Vlijia Stefan
+     * @param argument is the keyword to search
+     * @param pathToRootFolder is the absolute path to the root folder
+     * @return a list of site URLs that contain the given keyword
+     *         or null in case that keyword doesn't exist
+     */
 
-    public void readFromIndexFile(String siteURL, String argument) {
-    }
-    public String searchInIndexFile(String argument) {
-        return null;
+    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) {
+
+        String indexFilePath = pathToRootFolder + "/index.json";
+
+        fileWork = new IndexFileWork();
+        return fileWork.search(indexFilePath, argument);
     }
 
     /**
@@ -168,16 +287,34 @@ public class FileWorker {
      * @param path is absolute path where file was saved
      * @return list of configure file rows
      */
+
     public ArrayList<String> readFromConfigureFile(String path) throws FileNotFoundException, MalformedURLException {
         fileWork = new NormalFileWork();
         ArrayList<String> rows =  fileWork.read(path);
         fileWork = null;
         return rows;
     }
+
     public void writeToConfigureFile(String argument, String value) {
     }
-    public ArrayList<String> filterInIndexFile(String type) {
-        return null;
+
+    /**
+     * Function responsible for filtering the index.json file
+     * by an filtering criteria
+     *
+     * @author Vlijia Stefan
+     * @param  pathToRootFolder is absolute path to the root folder
+     * @param  argument is an file extension on the basis of which the
+     *                  filtering is done
+     * @return an ArrayList that contain the site URLs that contain the given filter
+     *         or null in case that index.json file doesn't exist
+     */
+
+    public ArrayList<String> filterInIndexFile(String argument, String pathToRootFolder) {
+        String indexFilePath = pathToRootFolder + "/index.json";
+
+        fileWork = new IndexFileWork();
+        return fileWork.filter(indexFilePath, argument);
     }
     /**
      * Function responsible for reading URLs from the file given.

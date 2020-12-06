@@ -65,8 +65,9 @@ public class NormalFileWork extends FileWork{
      * @param word is a keyword
      * @return list of data (it depends of file type)
      */
+
     @Override
-    protected ArrayList<String> search(String word) {
+    protected ArrayList<String> search(String pathToFile, String word) {
         return null;
     }
 
@@ -76,8 +77,9 @@ public class NormalFileWork extends FileWork{
      * @param filter is a word by which we are filtering data from file
      * @return list of filtered data (it depends on file type)
      */
+
     @Override
-    protected ArrayList<String> filter(String filter) {
+    protected ArrayList<String> filter(String pathToFile, String filter) {
         return null;
     }
 }
