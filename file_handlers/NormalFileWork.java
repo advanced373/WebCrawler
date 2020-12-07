@@ -63,11 +63,25 @@ public class NormalFileWork extends FileWork{
      * Function responsible for searching a word in file
      *
      * @param word is a keyword
-     * @return list of data (it depends of file type)
+     * @param pathToFile is the location in which we are searching
+     * @return list of lines index where word was found
      */
+
     @Override
-    protected ArrayList<String> search(String word) {
-        return null;
+    protected ArrayList<String> search(String pathToFile, String word) throws FileNotFoundException {
+        File inFile = new File(pathToFile);
+        Scanner myReader = new Scanner(inFile);
+        ArrayList <String> lines = new ArrayList<>();
+        int i=0;
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine();
+            if(data.indexOf(word) != -1)
+            {
+                lines.add(Integer.toString(i));
+            }
+            i++;
+        }
+        return lines;
     }
 
     /**
@@ -76,8 +90,9 @@ public class NormalFileWork extends FileWork{
      * @param filter is a word by which we are filtering data from file
      * @return list of filtered data (it depends on file type)
      */
+
     @Override
-    protected ArrayList<String> filter(String filter) {
+    protected ArrayList<String> filter(String pathToFile, String filter) {
         return null;
     }
 }
