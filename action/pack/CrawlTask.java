@@ -14,11 +14,11 @@ import java.util.concurrent.BrokenBarrierException;
 public abstract class CrawlTask implements Runnable{
 
     /**
-     * Member decription
+     * Member description
     */
 
-    private String urlToCrawl;
-    private Crawl webCrawler;
+    protected String urlToCrawl;
+    protected Crawl webCrawler;
     private Integer delay;
     private String rootDir;
 

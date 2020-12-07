@@ -111,11 +111,14 @@ public class Crawl extends ExternAction{
             try {
                 String currentURL=linksQueue.take();
 
-                if(!this.checkURL(currentURL))
+                if(!this.checkURL(currentURL)) {
+                    System.out.println("Nu merge");
                     continue;
+                }
                 this.visitedLinks.add(currentURL);
+                System.out.println(currentURL);
 
-                CrawlTask crawlTask=new CrawlTaskNormal(currentURL,this,this.delay,this.rootDir);
+                CrawlTask crawlTask=new CrawlTaskRobots(currentURL,this,this.delay,this.rootDir);
                 this.executorService.submit(crawlTask);
 
                 synchronized (this){
@@ -126,10 +129,8 @@ public class Crawl extends ExternAction{
                     cyclicBarrier.await();
                 }
 
-            }catch (InterruptedException interruptedException){
-                interruptedException.printStackTrace();
-            } catch (BrokenBarrierException e) {
-                e.printStackTrace();
+            }catch (InterruptedException | BrokenBarrierException exception){
+                exception.printStackTrace();
             }
         }
 
@@ -221,9 +222,11 @@ public class Crawl extends ExternAction{
 
         if(this.visitedLinks.contains(url))
             return false;
-        if(Util.checkUrlExtension(this.extension,url))
+        if(Util.checkUrlExtension(this.extension,url)) {
+            System.out.println("Extdsfhdsjk");
             return true;
-        return false;
+        }
+        return true;
     }
 
     /**

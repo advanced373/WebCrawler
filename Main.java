@@ -48,8 +48,7 @@ class Main {
         }*/
         ArrayList<String> param=new ArrayList<>();
         param.add("yes");
-        param.add("pdf");
-        param.add("png");
+
 
         try {
             IAction action=new Crawl("","file.conf","seed.txt",param);
