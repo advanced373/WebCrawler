@@ -1,15 +1,17 @@
 package action.pack;
 
 
+import file_handlers.FileWorker;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
-import java.util.regex.*;
-
-
-import file_handlers.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class implements the download process starting from a file with URLs
@@ -67,6 +69,7 @@ public class Crawl extends ExternAction{
         this.fileNameConf = fileNameConf;
         this.fileNameUrlList = fileNameUrlList;
         this.cyclicBarrier=new CyclicBarrier(2);
+        this.executorService=null;
 
         FileWorker fileWorker= new FileWorker();
         ArrayList<String> confParam;
@@ -118,7 +121,7 @@ public class Crawl extends ExternAction{
 
                 this.visitedLinks.add(currentURL);
 
-                CrawlTask crawlTask=new CrawlTaskNormal(currentURL,this,this.delay,this.rootDir);
+                CrawlTask crawlTask=TaskFactory.createTask( currentURL,this,this.delay,this.rootDir,this.flagRobots );
                 this.executorService.submit(crawlTask);
 
                 synchronized (this){
@@ -137,8 +140,7 @@ public class Crawl extends ExternAction{
         this.executorService.shutdown();
 
         try {
-            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            return true;
+            return this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         }catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
         }

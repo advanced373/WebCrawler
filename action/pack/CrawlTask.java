@@ -64,7 +64,6 @@ public abstract class CrawlTask implements Runnable{
 
             this.writePage(path,inputStream);
 
-
             inputStream.close();
             FileWorker fileWorker = new FileWorker();
             ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
