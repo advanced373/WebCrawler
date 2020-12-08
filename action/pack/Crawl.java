@@ -32,12 +32,15 @@ public class Crawl extends ExternAction{
     private Integer logLevel;
     /** the maximum number of pages that can be downloaded*/
     private Integer depth;
-    /** used when checking the contents of the file robots.txt */
-    private Integer flagRobots;
+    /** used when checking the contents of the file robots.txt (if the value is 1 it must be checked otherwise not) */
+    private Integer flagRobots=0;
+    /** used if certain types of files can be downloaded (if the value is 1 it must be checked otherwise not) */
+    private Integer flagExtension=0;
     /** used to download specific resources depending on the extension*/
-    private ArrayList<String> extension=new ArrayList<>();
+    private final ArrayList<String> extension=new ArrayList<>();
     /** used to check if the page from a url has already been downloaded*/
-    private Set<String> visitedLinks=new HashSet();
+    private final Set<String> visitedLinks=new HashSet<>();
+
 
 
     /** processing queue */
@@ -48,6 +51,7 @@ public class Crawl extends ExternAction{
     public String fileNameConf;
     /** the name of the file with the seed urls */
     public String fileNameUrlList;
+
 
 
     /** CrawlTask constructor
@@ -65,25 +69,20 @@ public class Crawl extends ExternAction{
         this.cyclicBarrier=new CyclicBarrier(2);
 
         FileWorker fileWorker= new FileWorker();
-        ArrayList<String> confParam=new ArrayList<>(5);
+        ArrayList<String> confParam;
         try {
             this.urlsToCrawl=fileWorker.ReadFromURLsFile(this.fileNameUrlList);
             confParam=fileWorker.readFromConfigureFile(this.fileNameConf);
-            this.parseParam(confParam,this.numThreads,this.delay,this.rootDir,this.logLevel,this.depth);
-        }catch (FileNotFoundException | MalformedURLException exception) {
+            this.parseParam(confParam);
+        }catch (NumberFormatException  | IOException exception) {
             exception.printStackTrace();
-        }catch (NumberFormatException  numberFormatException){
-            numberFormatException.printStackTrace();
         }catch (CrawlerException crawlException){
             crawlException.print();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         if(parameters.get(0).equals("yes"))
             setFlagRobots(1);
-        else
-            setFlagRobots(0);
+
 
         setExtension(parameters);
         initProcessQueue();
@@ -114,12 +113,10 @@ public class Crawl extends ExternAction{
             try {
                 String currentURL=linksQueue.take();
 
-                if(!this.checkURL(currentURL)) {
-                    System.out.println("Nu merge");
+                if(!this.checkURL(currentURL,this.flagExtension))
                     continue;
-                }
+
                 this.visitedLinks.add(currentURL);
-                System.out.println(currentURL);
 
                 CrawlTask crawlTask=new CrawlTaskNormal(currentURL,this,this.delay,this.rootDir);
                 this.executorService.submit(crawlTask);
@@ -170,8 +167,13 @@ public class Crawl extends ExternAction{
     }
 
     public void setExtension(ArrayList<String> extension) {
+        if(extension.size()==1){
+            this.flagExtension=0;
+            return;
+        }
         for(int i=1;i<extension.size();i++)
             this.extension.add((extension.get(i)));
+        this.flagExtension=1;
     }
 
     public void setFlagRobots(Integer flagRobots) {
@@ -180,16 +182,10 @@ public class Crawl extends ExternAction{
 
     /**
      * This method parses the configuration parameters and initializes them
-     * @param param
-     * @param numThreads
-     * @param delay
-     * @param rootDir
-     * @param logLevel
-     * @param depth
      * @throws CrawlerException when size of param differ from 5
      */
 
-    private void parseParam( ArrayList<String> param,Integer numThreads,Integer delay,String rootDir,Integer logLevel,Integer depth) throws CrawlerException {
+    private void parseParam(ArrayList<String> param) throws CrawlerException {
 
         if(param.size()!=5){
             throw new CrawlerException("100","The number of configuration parameters is different from 5.");
@@ -216,20 +212,19 @@ public class Crawl extends ExternAction{
     }
 
     /**
-     * This method check if url already been visited or extension is ok
-     * @param url
+     * This method check if url already been visited or extension is ok if is case
+     * @param url value of url
      * @return true if the url has not been visited or the extension is allowed else false
      */
 
-    private boolean checkURL(String url){
+    private boolean checkURL(String url,Integer flagExtension){
 
         if(this.visitedLinks.contains(url))
             return false;
-        if(Util.checkUrlExtension(this.extension,url)) {
-            System.out.println("Extdsfhdsjk");
+        if(flagExtension==1)
+            return  Util.checkUrlExtension(this.extension, url );
+        else
             return true;
-        }
-        return true;
     }
 
     /**
@@ -240,11 +235,11 @@ public class Crawl extends ExternAction{
 
     private boolean isValidUrl(String url){
 
-        String regex = "((http|https)://)(www.)?"
-                    + "[a-zA-Z0-9@:%._\\+~#?&//=]"
-                    + "{2,256}\\.[a-z]"
-                    + "{2,6}\\b([-a-zA-Z0-9@:%"
-                    + "._\\+~#?&//=]*)";
+
+        //OWASP url regex
+        String regex =  "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
+                "(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)" +
+                "([).!';/?:,][[:blank:]])?$";
 
         Pattern p = Pattern.compile(regex);
         if (url == null) {

@@ -1,11 +1,9 @@
 package action.pack;
 
-import file_handlers.FileWork;
 import file_handlers.FileWorker;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
 
@@ -44,7 +42,6 @@ public abstract class CrawlTask implements Runnable{
      * This method call crawl function
      */
 
-
     public abstract void run();
 
     /**
@@ -68,14 +65,12 @@ public abstract class CrawlTask implements Runnable{
             this.writePage(path,inputStream);
 
 
-           inputStream.close();
+            inputStream.close();
             FileWorker fileWorker = new FileWorker();
             ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
-            for(String URL : URLs)
-            {
-                this.webCrawler.linksQueue.put(URL);
-                //System.out.println(URL);
-            }
+
+            this.addUrlLinkedQueue( URLs );
+
             if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1)
                 this.webCrawler.cyclicBarrier.await();
 
@@ -114,5 +109,17 @@ public abstract class CrawlTask implements Runnable{
             outputStream.close();
 
         }
+    }
+
+    /**
+     * Add new URL to processing queue
+     * @param URLs URLs extracted from the downloaded page
+     */
+
+    private void addUrlLinkedQueue(ArrayList<String> URLs)  {
+        if (URLs==null)
+            return;
+        for (String url:URLs)
+            this.webCrawler.linksQueue.add( url );
     }
 }
