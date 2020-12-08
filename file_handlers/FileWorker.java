@@ -27,7 +27,7 @@ public class FileWorker {
      * @param pathToFile is absolute path where file was saved
      * @return list of URLs
      */
-    public ArrayList<String> ReadFromURLsFile(String pathToFile) throws FileNotFoundException, MalformedURLException {
+    public ArrayList<String> ReadFromURLsFile(String pathToFile) throws IOException {
         fileWork = new NormalFileWork();
         ArrayList<String> SeedURLs =  fileWork.read(pathToFile);
         fileWork = null;
@@ -46,7 +46,7 @@ public class FileWorker {
      *         FileNotFoundException if the file doesn't exist
      */
 
-    public static void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
+    public void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
 
         String indexFilePath = pathToRootFolder + "/index.json";
 
@@ -179,7 +179,7 @@ public class FileWorker {
      *         MalformedURLException if the given URL is wrong
      */
 
-    public ArrayList<String> readFromIndexFile(String siteURL, String pathToRootFolder) throws FileNotFoundException, MalformedURLException {
+    public ArrayList<String> readFromIndexFile(String siteURL, String pathToRootFolder) throws IOException {
         String indexFilePath = pathToRootFolder + "/index.json";
         ArrayList<String> returnEntry = new ArrayList<>();
 
@@ -295,7 +295,7 @@ public class FileWorker {
      * @return list of configure file rows
      */
 
-    public ArrayList<String> readFromConfigureFile(String path) throws FileNotFoundException, MalformedURLException {
+    public ArrayList<String> readFromConfigureFile(String path) throws IOException {
         fileWork = new NormalFileWork();
         ArrayList<String> rows =  fileWork.read(path);
         fileWork = null;
@@ -328,11 +328,13 @@ public class FileWorker {
      * @param path is absolute path where file was saved
      * @param siteURL is Seed URL
      * @return list of URLs extracted from file
+     * @author Stoica Mihai
      */
     public ArrayList<String> readFromHTMLFile(String siteURL, String path) throws IOException {
         fileWork = new HTMLFileWork();
-        ArrayList<String> URLs=fileWork.read(path);
-        fileWork.write(path,siteURL);
+        String bothValues = siteURL+"!"+path;
+        ArrayList<String> URLs=fileWork.read(bothValues);
+        //fileWork.write(path,siteURL);
         fileWork = null;
         return URLs;
     }

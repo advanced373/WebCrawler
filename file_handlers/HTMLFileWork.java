@@ -17,40 +17,52 @@ public class HTMLFileWork extends FileWork{
     /**
      * Function responsible for reading URLs from file, using REGEX.
      *
-     * @param fileName is absolute path to file
+     * @param bothValues is a string that contains both siteURL (which is  and path
      * @return list of URLs
      */
     @Override
-    protected  ArrayList<String> read(String fileName) throws FileNotFoundException, MalformedURLException {
+    protected  ArrayList<String> read(String bothValues) throws IOException {
+        String parts[];
+        parts = bothValues.split("!");
+        String fileName = parts[1];
+        String siteURL  = parts[0];
         File inFile = new File(fileName);
         Pattern pattern;
         Matcher matcher;
-        String fileNameCopy = fileName;
-        pattern=Pattern.compile("([^\\\\s]+(\\\\.(?i)(html|php))$)");
+        pattern=Pattern.compile("([^\\s]+(\\.(?i)(html|php))$)");
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
-            return null;
+            CheckFileType checkFileType = new CheckFileType();
+            if(checkFileType.getType(fileName) != CheckFileType.FileType.HTML && checkFileType.getType(fileName) != CheckFileType.FileType.DOC_HTML && checkFileType.getType(fileName) != CheckFileType.FileType.PHP)
+            {
+                return null;
+            }
         }
         Scanner myReader = new Scanner(inFile);
         ArrayList <String> URLs = new ArrayList<>();
         while (myReader.hasNextLine()) {
             String data = myReader.nextLine();
-            pattern= Pattern.compile("href=\"(.*?)\"");
+            pattern = Pattern.compile("href=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"|href=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"");
             matcher= pattern.matcher(data);
             int i=0;
             String helperNormalization;
-            String parts[];
+            String helpURL;
+            helpURL = siteURL.substring(0,siteURL.lastIndexOf("/"));
             while (matcher.find()) {
-                parts=fileNameCopy.split("\\\\");
-                helperNormalization = Util.URLProcessing(parts[parts.length-1],matcher.group(1));
+                String dataToSend = matcher.group(0).replace("href=\"","");
+                dataToSend = dataToSend.substring(0,dataToSend.length()-1);
+                helperNormalization = Util.URLProcessing(helpURL,dataToSend);
+                URLs.add(helperNormalization);
                 URLs.add(helperNormalization);
                 i++;
             }
-            pattern= Pattern.compile("src=\"(.*?)\"");
+            pattern = Pattern.compile("src=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"|src=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"");
             matcher= pattern.matcher(data);
             while (matcher.find()) {
-                parts=fileNameCopy.split("\\\\");
-                helperNormalization = Util.URLProcessing(parts[parts.length-1],matcher.group(1));
+                String dataToSend = matcher.group(0).replace("src=\"","");
+                dataToSend = dataToSend.substring(0,dataToSend.length()-1);
+                helperNormalization = Util.URLProcessing(helpURL,dataToSend);
+                URLs.add(helperNormalization);
                 URLs.add(helperNormalization);
                 i++;
             }

@@ -20,7 +20,7 @@ abstract public class FileWork {
      * @param fileName is absolute path to file
      * @return list of data (it depends on file type)
      */
-    protected abstract ArrayList<String> read(String fileName) throws FileNotFoundException, MalformedURLException;
+    protected abstract ArrayList<String> read(String fileName) throws IOException;
     /**
      * Function responsible for writing data to file (it depends on file type)
      * @param fileName is absolute path to file

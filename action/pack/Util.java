@@ -1,5 +1,6 @@
 package action.pack;
 
+import javax.sound.midi.SysexMessage;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
@@ -20,7 +21,7 @@ public class Util {
     public static String URLProcessing(String url, String resource) throws MalformedURLException {
 
         String finalUrl;
-
+        System.out.println(url +" "+resource+"\n");
         finalUrl = Util.normalize(url);
 
         if (resource.startsWith("./"))

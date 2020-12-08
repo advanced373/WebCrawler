@@ -2,6 +2,7 @@ package action.pack;
 
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -75,6 +76,8 @@ public class Crawl extends ExternAction{
             numberFormatException.printStackTrace();
         }catch (CrawlerException crawlException){
             crawlException.print();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         if(parameters.get(0).equals("yes"))
@@ -118,7 +121,7 @@ public class Crawl extends ExternAction{
                 this.visitedLinks.add(currentURL);
                 System.out.println(currentURL);
 
-                CrawlTask crawlTask=new CrawlTaskRobots(currentURL,this,this.delay,this.rootDir);
+                CrawlTask crawlTask=new CrawlTaskNormal(currentURL,this,this.delay,this.rootDir);
                 this.executorService.submit(crawlTask);
 
                 synchronized (this){
