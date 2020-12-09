@@ -23,8 +23,18 @@ public class Util {
 
         String finalUrl = url;
          //System.out.println("am primit" +url + " " + resource + "\n");
-        //finalUrl = Util.normalize(url);
+        //String finalUrl = Util.normalize(url);
         //finalUrl="";
+
+        resource=resource.replace("///","/");
+
+        int fragmentIndex = resource.indexOf("#");
+        if(fragmentIndex > -1)
+            resource=resource.substring( 0,fragmentIndex );
+
+        fragmentIndex = resource.indexOf("?");
+        if(fragmentIndex > -1)
+            resource=resource.substring( 0,fragmentIndex );
 
         if (resource.startsWith("http://") || resource.startsWith("https://")) {
             //System.out.println("Resource sent " + resource + "\n");
