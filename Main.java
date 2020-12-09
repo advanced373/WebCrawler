@@ -1,4 +1,5 @@
-package action.pack;
+import action.pack.IAction;
+import action.pack.SearchAction;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -46,16 +47,12 @@ class Main {
         {
             //rularea actiunii a esuat
         }*/
+
         ArrayList<String> param=new ArrayList<>();
         param.add("yes");
 
-
-        try {
-            IAction action=new Crawl("","file.conf","seed.txt",param);
-            action.runAction();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        IAction action=new SearchAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\google.ro", "cuvant_de_cautat");
+        action.runAction();
 
     }
 }
