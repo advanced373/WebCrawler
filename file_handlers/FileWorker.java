@@ -37,6 +37,26 @@ public class FileWorker {
     }
 
     /**
+     * Function responsible for searching an given word in given file
+     *
+     * @author Vlijia Stefan
+     * @param pathToFile is absolute path where file was saved
+     * @return word is the word to be searched
+     * @return list of line positions where the word appear in file
+     * @throws FileNotFoundException if the file isn't find
+     */
+
+    public ArrayList<String> SearchInNormalFile(String pathToFile, String word) throws FileNotFoundException {
+        this.fileWork = new NormalFileWork();
+        return fileWork.search(pathToFile, word);
+    }
+
+    public ArrayList<String> FilterInNormalFile(String pathToFile, String filter)
+    {
+        this.fileWork = new NormalFileWork();
+        return fileWork.filter(pathToFile, filter);
+    }
+    /**
      * Function responsible for write new entry in index.json file
      *
      * @author Vlijia Stefan
@@ -46,7 +66,7 @@ public class FileWorker {
      *         FileNotFoundException if the file doesn't exist
      */
 
-    public static void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
+    public void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
 
         String indexFilePath = pathToRootFolder + "/index.json";
 
@@ -283,7 +303,7 @@ public class FileWorker {
 
     public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) throws FileNotFoundException {
 
-        String indexFilePath = pathToRootFolder + "/index.json";
+        String indexFilePath = pathToRootFolder + "\\index.json";
 
         fileWork = new IndexFileWork();
         return fileWork.search(indexFilePath, argument);
@@ -323,12 +343,31 @@ public class FileWorker {
         fileWork = new IndexFileWork();
         return fileWork.filter(indexFilePath, argument);
     }
+
+    /**
+     * Function responsible to add a new keyword to an existing entry in
+     * index.json file
+     *
+     * @author Vlijia Stefan
+     * @param  indexFilePath is absolute path to the index.json file
+     * @param  keyWord is the word to be added
+     * @param  filePath is the pat to the file without the path to the root folder
+     * @return an ArrayList that contain the site URLs that contain the given filter
+     *         or null in case that index.json file doesn't exist
+     */
+
+    public boolean addKeywordToIndexFile(String indexFilePath, String keyWord, String filePath)
+    {
+        fileWork = new IndexFileWork();
+        return ((IndexFileWork)fileWork).addKeyWord(indexFilePath,keyWord,filePath);
+    }
     /**
      * Function responsible for reading URLs from the file given.
      * @param path is absolute path where file was saved
      * @param siteURL is Seed URL
      * @return list of URLs extracted from file
      */
+
     public ArrayList<String> readFromHTMLFile(String siteURL, String path) throws IOException {
         fileWork = new HTMLFileWork();
         ArrayList<String> URLs=fileWork.read(path);
