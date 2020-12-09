@@ -304,7 +304,6 @@ public class FileWorker {
 
     public void writeToConfigureFile(String argument, String value) {
     }
-
     /**
      * Function responsible for filtering the index.json file
      * by an filtering criteria

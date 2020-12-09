@@ -33,7 +33,7 @@ public class HTMLFileWork extends FileWork{
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
             CheckFileType checkFileType = new CheckFileType();
-            if(checkFileType.getType(fileName) != CheckFileType.FileType.HTML && checkFileType.getType(fileName) != CheckFileType.FileType.DOC_HTML && checkFileType.getType(fileName) != CheckFileType.FileType.PHP)
+            if(checkFileType.getType(fileName) == null)
             {
                 return null;
             }
