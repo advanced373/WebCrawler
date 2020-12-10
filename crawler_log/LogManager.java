@@ -8,7 +8,10 @@
 
 package crawler_log;
 
-import java.util.logging.Logger;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.logging.*;
 
 /**
  * Singleton class LogManager used for logging web crawler's actions
@@ -41,7 +44,7 @@ public class LogManager {
         return singleInstance;
     }
 
-    public Logger GetLogger(LoggerType type, String fileName) {
+    public static Logger getLogger(LoggerType type, String fileName) {
         if (type == LoggerType.FileLogger) {
             return Logger.getLogger("CrawlerFileLog", fileName);
         } else {
@@ -50,12 +53,25 @@ public class LogManager {
         }
     }
 
-    public Logger GetLogger(LoggerType type) {
-        if (type == LoggerType.ConsoleLogger) {
-            return Logger.getLogger("CrawlerConsoleLog");
+    public static Logger getLogger(LoggerType type) throws IOException {
+        if (type == LoggerType.FileLogger) {
+            Logger logger = Logger.getLogger("CrawlerFileLog");
+            Handler fileHandler = new FileHandler("logger.log", 2000, 1,true);
+            FileLogFormatter fileLogFormatter = new FileLogFormatter();
+            fileHandler.setFormatter(fileLogFormatter);
+            fileHandler.setLevel(Level.FINE);
+            logger.addHandler(fileHandler);
+            return logger;
         } else {
-            // to do: throw exception for unsupported logger type
-            return null;
+            Logger logger = Logger.getLogger("CrawlerConsoleLog");
+            //java.util.logging.LogManager.getLogManager().readConfiguration(new FileInputStream("src/mylogging.properties"));
+            Handler consoleHandler = new ConsoleHandler();
+            ConsoleLogFormatter consoleLogFormatter = new ConsoleLogFormatter();
+            consoleHandler.setFormatter(consoleLogFormatter);
+            consoleHandler.setLevel(Level.ALL);
+            logger.addHandler(consoleHandler);
+            logger.setLevel(Level.FINE);
+            return logger;
         }
     }
 }

@@ -5,6 +5,8 @@ import file_handlers.FileWorker;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -123,10 +125,11 @@ public class Crawl extends ExternAction{
                    continue;
                 }
                 this.visitedLinks.add(currentURL);
+                this.addCountDownloadedPage();
 
 
-                CrawlTask crawlTask=TaskFactory.createTask( currentURL,this,this.delay,this.rootDir,this.flagRobots );
-                this.threadPoolExecutor.submit(crawlTask);
+                CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots );
+                this.threadPoolExecutor.submit( crawlTask );
 
                 if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
                     this.cyclicBarrier.await();
@@ -140,13 +143,7 @@ public class Crawl extends ExternAction{
             }
         }
 
-        try {
-            this.cyclicBarrier.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (BrokenBarrierException e) {
-            e.printStackTrace();
-        }
+
         System.out.println("Barrier: "+this.cyclicBarrier.getNumberWaiting());
         System.out.println("Count final "+this.countPagesDownload);
         System.out.println("Task count "+this.threadPoolExecutor.getTaskCount());
@@ -278,6 +275,15 @@ public class Crawl extends ExternAction{
         synchronized (this) {
             this.countPagesDownload++;
         }
+    }
+
+    private int checkURLConnection(String urlValue) throws IOException {
+        URL url=new URL(urlValue);
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setConnectTimeout( 2000 );
+        int code=connection.getResponseCode();
+        connection.disconnect();
+        return code;
     }
 
 }

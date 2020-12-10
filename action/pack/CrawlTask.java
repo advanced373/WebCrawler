@@ -56,7 +56,7 @@ public abstract class CrawlTask implements Runnable{
     protected void crawl() throws IOException {
 
         try{
-            this.urlToCrawl=Util.URLProcessing( this.urlToCrawl ,"");
+            this.urlToCrawl=URLNormalization.URLProcessing( this.urlToCrawl ,"");
             URL url=new URL(this.urlToCrawl);
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
             connection.setConnectTimeout( 2000 );
@@ -86,7 +86,7 @@ public abstract class CrawlTask implements Runnable{
                 if (!file.delete()) {
                 }
             }
-            this.webCrawler.addCountDownloadedPage();
+            connection.disconnect();
             Thread.sleep(this.delay);
 
 

@@ -37,6 +37,26 @@ public class FileWorker {
     }
 
     /**
+     * Function responsible for searching an given word in given file
+     *
+     * @author Vlijia Stefan
+     * @param pathToFile is absolute path where file was saved
+     * @return word is the word to be searched
+     * @return list of line positions where the word appear in file
+     * @throws FileNotFoundException if the file isn't find
+     */
+
+    public ArrayList<String> SearchInNormalFile(String pathToFile, String word) throws FileNotFoundException {
+        this.fileWork = new NormalFileWork();
+        return fileWork.search(pathToFile, word);
+    }
+
+    public ArrayList<String> FilterInNormalFile(String pathToFile, String filter)
+    {
+        this.fileWork = new NormalFileWork();
+        return fileWork.filter(pathToFile, filter);
+    }
+    /**
      * Function responsible for write new entry in index.json file
      *
      * @author Vlijia Stefan
@@ -83,6 +103,10 @@ public class FileWorker {
                 i++;
                 int nrOfElements = Integer.parseInt(dataArray.get(i));
                 i++;
+                if(nrOfElements == 0)
+                {
+                    entry = entry + "\t\t\t],\n";
+                }
                 for (int j = i; j < i + nrOfElements; j++) {
                     entry += "\t\t\t\t";
                     if (j == i + nrOfElements - 1) {
@@ -276,17 +300,16 @@ public class FileWorker {
      *
      * @author Vlijia Stefan
      * @param argument is the keyword to search
-     * @param pathToRootFolder is the absolute path to the root folder
+     * @param pathToSiteFolder is the absolute path to the folder
+     *                         where the site is downloaded
      * @return a list of site URLs that contain the given keyword
      *         or null in case that keyword doesn't exist
      */
 
-    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) throws FileNotFoundException {
-
-        String indexFilePath = pathToRootFolder + "/index.json";
+    public ArrayList<String> searchInIndexFile(String pathToSiteFolder, String argument) throws FileNotFoundException {
 
         fileWork = new IndexFileWork();
-        return fileWork.search(indexFilePath, argument);
+        return fileWork.search(argument, pathToSiteFolder);
     }
 
     /**
@@ -304,24 +327,41 @@ public class FileWorker {
 
     public void writeToConfigureFile(String argument, String value) {
     }
-
     /**
      * Function responsible for filtering the index.json file
      * by an filtering criteria
      *
      * @author Vlijia Stefan
-     * @param  pathToRootFolder is absolute path to the root folder
+     * @param  pathToSiteFolder is absolute path to the folder where
+     *                          the site is downloaded
      * @param  argument is an file extension on the basis of which the
      *                  filtering is done
      * @return an ArrayList that contain the site URLs that contain the given filter
      *         or null in case that index.json file doesn't exist
      */
 
-    public ArrayList<String> filterInIndexFile(String argument, String pathToRootFolder) {
-        String indexFilePath = pathToRootFolder + "/index.json";
+    public ArrayList<String> filterInIndexFile(String argument, String pathToSiteFolder) {
 
         fileWork = new IndexFileWork();
-        return fileWork.filter(indexFilePath, argument);
+        return fileWork.filter(pathToSiteFolder, argument);
+    }
+
+    /**
+     * Function responsible to add a new keyword to an existing entry in
+     * index.json file
+     *
+     * @author Vlijia Stefan
+     * @param  indexFilePath is absolute path to the index.json file
+     * @param  keyWord is the word to be added
+     * @param  filePath is the pat to the file without the path to the root folder
+     * @return an ArrayList that contain the site URLs that contain the given filter
+     *         or null in case that index.json file doesn't exist
+     */
+
+    public boolean addKeywordToIndexFile(String indexFilePath, String keyWord, String filePath)
+    {
+        fileWork = new IndexFileWork();
+        return ((IndexFileWork)fileWork).addKeyWord(indexFilePath,keyWord,filePath);
     }
     /**
      * Function responsible for reading URLs from the file given.
@@ -330,6 +370,7 @@ public class FileWorker {
      * @return list of URLs extracted from file
      * @author Stoica Mihai
      */
+
     public ArrayList<String> readFromHTMLFile(String siteURL, String path) throws IOException {
         fileWork = new HTMLFileWork();
         String bothValues = siteURL+"!"+path;

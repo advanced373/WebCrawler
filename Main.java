@@ -1,9 +1,7 @@
 import action.pack.Crawl;
 import action.pack.IAction;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
@@ -32,11 +30,9 @@ class Main {
     }
 
 
-
-
-
     public static void main(String[] args)
     {
+
         /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
         if(args.length < 1)
         {
@@ -53,10 +49,10 @@ class Main {
         {
             //rularea actiunii a esuat
         }*/
+
         ArrayList<String> param=new ArrayList<>();
         param.add("no");
-        param.add("png");
-        param.add("jpg");
+        
 
        // for(int i=0;i<100;i++) {
             long startTime = System.currentTimeMillis();
@@ -72,8 +68,6 @@ class Main {
             System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );
         //}
 
-        // 1.De verificat alea cu robots
-        // 2.Erori 404 si altele
-        // 3.Doar anumite tipuri
+
     }
 }

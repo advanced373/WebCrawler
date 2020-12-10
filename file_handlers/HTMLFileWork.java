@@ -1,4 +1,5 @@
 package file_handlers;
+import action.pack.URLNormalization;
 import action.pack.Util;
 
 import java.io.*;
@@ -33,9 +34,7 @@ public class HTMLFileWork extends FileWork{
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
             CheckFileType checkFileType = new CheckFileType();
-            if(checkFileType.getType(fileName) != CheckFileType.FileType.HTML
-                    && checkFileType.getType(fileName) != CheckFileType.FileType.DOC_HTML
-                    && checkFileType.getType(fileName) != CheckFileType.FileType.PHP)
+            if(checkFileType.getType(fileName) == null)
             {
                 return null;
             }
@@ -57,7 +56,7 @@ public class HTMLFileWork extends FileWork{
             while (matcher.find()) {
                 String dataToSend = matcher.group(0).replace("href=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
-                helperNormalization = Util.URLProcessing(helpURL,dataToSend);
+                helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
                 URLs.add(helperNormalization);
                 i++;
             }
@@ -66,7 +65,7 @@ public class HTMLFileWork extends FileWork{
             while (matcher.find()) {
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
-                helperNormalization = Util.URLProcessing(helpURL,dataToSend);
+                helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
                 URLs.add(helperNormalization);
                 URLs.add(helperNormalization);
                 i++;
