@@ -10,6 +10,7 @@ package action.pack;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Matcher;
@@ -67,6 +68,12 @@ public class Robots {
         String strCommands;
         try
         {
+            HttpURLConnection connection = (HttpURLConnection)robotTxtURL.openConnection();
+            connection.setConnectTimeout( 2000 );
+
+            if(connection.getResponseCode()<200 || 226 < connection.getResponseCode()) {
+                return true;
+            }
             InputStream urlRobotStream = robotTxtURL.openStream();
             byte b[] = new byte[1000];
             int readNr = urlRobotStream.read(b);
@@ -85,7 +92,7 @@ public class Robots {
         }
         catch (IOException e)
         {
-            return false;
+            return true;
         }
 
         if (strCommands.contains(DISALLOW))
@@ -129,7 +136,7 @@ public class Robots {
                         }
 
                         String strURL = url.toString();
-                        System.out.println(strURL);
+
 
                         Pattern pat = Pattern.compile(regex);
                         Matcher matcher = pat.matcher(strURL);

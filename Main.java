@@ -1,6 +1,9 @@
 import action.pack.Crawl;
 import action.pack.IAction;
+
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
@@ -28,6 +31,10 @@ class Main {
         }
     }
 
+
+
+
+
     public static void main(String[] args)
     {
         /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
@@ -47,15 +54,26 @@ class Main {
             //rularea actiunii a esuat
         }*/
         ArrayList<String> param=new ArrayList<>();
-        param.add("yes");
+        param.add("no");
+        param.add("png");
+        param.add("jpg");
 
+       // for(int i=0;i<100;i++) {
+            long startTime = System.currentTimeMillis();
+            try {
+                IAction action = new Crawl( "", "file.conf", "seed.txt", param );
+                action.runAction();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            long endTime = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
 
-        try {
-            IAction action=new Crawl("","file.conf","seed.txt",param);
-            action.runAction();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+            System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );
+        //}
 
+        // 1.De verificat alea cu robots
+        // 2.Erori 404 si altele
+        // 3.Doar anumite tipuri
     }
 }

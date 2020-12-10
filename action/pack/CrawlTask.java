@@ -1,8 +1,12 @@
 package action.pack;
 
+import file_handlers.CheckFileType;
 import file_handlers.FileWorker;
 
+
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
@@ -50,30 +54,41 @@ public abstract class CrawlTask implements Runnable{
      */
 
     protected void crawl() throws IOException {
-        URL url=new URL(this.urlToCrawl);
 
         try{
-            InputStream inputStream=url.openStream();
-
-            String path;
-            if(url.getPath().isEmpty()){
-                path = rootDir + '/' + url.getHost() + '/'+url.getHost();
-            }else {
-                path = rootDir + '/' + url.getHost() +'/' +url.getPath();
+            this.urlToCrawl=Util.URLProcessing( this.urlToCrawl ,"");
+            URL url=new URL(this.urlToCrawl);
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            connection.setConnectTimeout( 2000 );
+            if(connection.getResponseCode()<200 || 226 < connection.getResponseCode()) {
+                return;
             }
 
+            InputStream inputStream=connection.getInputStream();
+            String path=this.getPath( url );
             this.writePage(path,inputStream);
-
             inputStream.close();
+
             FileWorker fileWorker = new FileWorker();
             ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
-
             this.addUrlLinkedQueue( URLs );
 
-            if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1)
+            CheckFileType checkFileType = new CheckFileType();
+            if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1 &&
+                (checkFileType.getType(path) == CheckFileType.FileType.HTML
+                    || checkFileType.getType(path) == CheckFileType.FileType.DOC_HTML
+                    || checkFileType.getType(path) == CheckFileType.FileType.PHP)){
                 this.webCrawler.cyclicBarrier.await();
+            }
 
-           Thread.sleep(this.delay);
+            if(this.webCrawler.getFlagExtension()==1 && !Util.checkUrlExtension(this.webCrawler.extension, this.urlToCrawl )){
+                File file=new File( path );
+                if (!file.delete()) {
+                }
+            }
+            this.webCrawler.addCountDownloadedPage();
+            Thread.sleep(this.delay);
+
 
         }catch (IOException  exception){
             throw new RuntimeException("Error connecting to URL",exception);
@@ -98,7 +113,6 @@ public abstract class CrawlTask implements Runnable{
             file.getParentFile().mkdirs();
             file.createNewFile();
 
-
             OutputStream outputStream=new FileOutputStream(file);
             int read;
             byte[] bytes=new byte[1024];
@@ -120,5 +134,13 @@ public abstract class CrawlTask implements Runnable{
             return;
         for (String url:URLs)
             this.webCrawler.linksQueue.add( url );
+    }
+
+    private String getPath(URL url){
+        if(url.getPath().isEmpty()){
+            return rootDir + '/' + url.getHost() + '/'+url.getHost();
+        }else {
+            return rootDir + '/' + url.getHost() +'/' +url.getPath();
+        }
     }
 }

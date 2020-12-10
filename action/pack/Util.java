@@ -19,9 +19,35 @@ public class Util {
 
     public static String URLProcessing(String url, String resource) throws MalformedURLException {
 
-        String finalUrl;
-        System.out.println( url + " " + resource + "\n" );
-        finalUrl = Util.normalize( url );
+        String finalUrl=url;
+        //System.out.println( url + " " + resource + "\n" );
+        //finalUrl = Util.normalize( url );
+
+        if (resource.startsWith( "/" )) {
+            URL newUrl = new URL( url );
+            finalUrl = newUrl.getProtocol() + "://" + newUrl.getHost() + "/" + resource;
+        }
+
+
+        int fragmentIndex = resource.indexOf( "#" );
+        if (fragmentIndex > -1)
+            resource = resource.substring( 0, fragmentIndex );
+
+        fragmentIndex = resource.indexOf( "?" );
+        if (fragmentIndex > -1)
+            resource = resource.substring( 0, fragmentIndex );
+
+        if(resource.endsWith( "/" ))
+            resource = resource.substring( 0, resource.length() - 1 );
+
+        int check = 0;
+        while (resource.startsWith( "../" )) {
+            check = 1;
+            resource = resource.substring( 3 );
+        }
+        if (check == 1)
+            resource = "../" + resource;
+
 
         if (resource.startsWith( "./" ))
             if (finalUrl.endsWith( "/" ))
@@ -30,13 +56,20 @@ public class Util {
                 finalUrl = finalUrl + resource.substring( 1 );
 
 
-        if (resource.startsWith( "../" ))
+        if (resource.startsWith( "../" )) {
             if (finalUrl.endsWith( "/" )) {
                 finalUrl = finalUrl.substring( 0, finalUrl.length() - 1 );
-                finalUrl = finalUrl.substring( 0, finalUrl.lastIndexOf( "/" ) ) + resource.substring( 2 );
-            } else {
-                finalUrl = finalUrl.substring( 0, finalUrl.lastIndexOf( "/" ) ) + resource.substring( 2 );
             }
+            finalUrl = finalUrl.substring( 0, finalUrl.lastIndexOf( "/" ) ) + resource.substring( 2 );
+        }
+        if (finalUrl.endsWith( "/" )) {
+            finalUrl = finalUrl.substring( 0, finalUrl.length() - 1 );
+        }
+
+        if (resource.startsWith( "http://" ))
+            return resource;
+        if (resource.startsWith( "https://" ))
+            return resource;
 
         return finalUrl;
     }
@@ -165,11 +198,17 @@ public class Util {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        if ("".equals( extension ))
+        if ("".equals( extension )) {
             for (String ext : allExtension) {
                 if (ext.equals( extension ))
                     return true;
             }
+        }else {
+            for (String ext : allExtension) {
+                if (ext.equals( extension ))
+                    return true;
+            }
+        }
         return false;
     }
 }

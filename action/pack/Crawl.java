@@ -23,7 +23,7 @@ public class Crawl extends ExternAction{
     /** seed URLs */
     private List<String> urlsToCrawl =new ArrayList<>();
     /** manages the thread pool*/
-    private ExecutorService executorService;
+    private ThreadPoolExecutor threadPoolExecutor;
     /** the number of threads in the pool*/
     private Integer numThreads;
     /** root directory where save downloaded pages */
@@ -38,10 +38,10 @@ public class Crawl extends ExternAction{
     private Integer flagRobots=0;
     /** used if certain types of files can be downloaded (if the value is 1 it must be checked otherwise not) */
     private Integer flagExtension=0;
-    /** used to download specific resources depending on the extension*/
-    private final ArrayList<String> extension=new ArrayList<>();
     /** used to check if the page from a url has already been downloaded*/
     private final Set<String> visitedLinks=new HashSet<>();
+    /** */
+    private Integer countPagesDownload;
 
 
 
@@ -53,7 +53,8 @@ public class Crawl extends ExternAction{
     public String fileNameConf;
     /** the name of the file with the seed urls */
     public String fileNameUrlList;
-
+    /** used to download specific resources depending on the extension*/
+    public final ArrayList<String> extension=new ArrayList<>();
 
 
     /** CrawlTask constructor
@@ -69,7 +70,8 @@ public class Crawl extends ExternAction{
         this.fileNameConf = fileNameConf;
         this.fileNameUrlList = fileNameUrlList;
         this.cyclicBarrier=new CyclicBarrier(2);
-        this.executorService=null;
+        this.threadPoolExecutor=null;
+        this.countPagesDownload=0;
 
         FileWorker fileWorker= new FileWorker();
         ArrayList<String> confParam;
@@ -85,7 +87,6 @@ public class Crawl extends ExternAction{
 
         if(parameters.get(0).equals("yes"))
             setFlagRobots(1);
-
 
         setExtension(parameters);
         initProcessQueue();
@@ -108,39 +109,51 @@ public class Crawl extends ExternAction{
 
     public boolean  execute() {
 
-        this.executorService = Executors.newFixedThreadPool(this.numThreads);
+        this.threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool( this.numThreads );
 
-        int countPagesDownload=0;
-
-        while (!this.linksQueue.isEmpty() && countPagesDownload<this.depth){
+        while (!this.linksQueue.isEmpty() && this.countPagesDownload<this.depth){
             try {
+
                 String currentURL=linksQueue.take();
 
-                if(!this.checkURL(currentURL,this.flagExtension))
-                    continue;
-
+                if(!this.checkURL(currentURL,this.flagExtension)) {
+                   if(this.linksQueue.isEmpty()  && this.threadPoolExecutor.getActiveCount()>0){
+                       this.cyclicBarrier.await();
+                   }
+                   continue;
+                }
                 this.visitedLinks.add(currentURL);
 
+
                 CrawlTask crawlTask=TaskFactory.createTask( currentURL,this,this.delay,this.rootDir,this.flagRobots );
-                this.executorService.submit(crawlTask);
+                this.threadPoolExecutor.submit(crawlTask);
 
-                synchronized (this){
-                    countPagesDownload++;
+                if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
+                    this.cyclicBarrier.await();
                 }
+                System.out.println(this.countPagesDownload);
 
-                if(this.linksQueue.isEmpty()){
-                    cyclicBarrier.await();
-                }
-
-            }catch (InterruptedException | BrokenBarrierException exception){
+            }catch (InterruptedException  exception){
                 exception.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
             }
         }
 
-        this.executorService.shutdown();
+        try {
+            this.cyclicBarrier.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BrokenBarrierException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Barrier: "+this.cyclicBarrier.getNumberWaiting());
+        System.out.println("Count final "+this.countPagesDownload);
+        System.out.println("Task count "+this.threadPoolExecutor.getTaskCount());
+        this.threadPoolExecutor.shutdown();
 
         try {
-            return this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            return this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         }catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
         }
@@ -193,7 +206,6 @@ public class Crawl extends ExternAction{
             throw new CrawlerException("100","The number of configuration parameters is different from 5.");
         }
 
-
         setNumThreads(Integer.parseInt(param.get(0).substring(10)));
         setDelay(Integer.parseInt(param.get(1).substring(6)));
         setRootDir(param.get(2).substring(9));
@@ -223,10 +235,15 @@ public class Crawl extends ExternAction{
 
         if(this.visitedLinks.contains(url))
             return false;
-        if(flagExtension==1)
-            return  Util.checkUrlExtension(this.extension, url );
-        else
-            return true;
+        return true;
+    }
+
+    public List<String> getUrlsToCrawl() {
+        return urlsToCrawl;
+    }
+
+    public Integer getFlagExtension() {
+        return flagExtension;
     }
 
     /**
@@ -251,6 +268,16 @@ public class Crawl extends ExternAction{
         Matcher m = p.matcher(url);
 
         return m.matches();
+    }
+
+    public Integer getActiveCount() {
+        return this.threadPoolExecutor.getActiveCount();
+    }
+
+    public void addCountDownloadedPage(){
+        synchronized (this) {
+            this.countPagesDownload++;
+        }
     }
 
 }
