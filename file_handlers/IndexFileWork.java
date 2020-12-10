@@ -75,7 +75,7 @@ public class IndexFileWork extends FileWork {
     /**
      * Function responsible for searching a given keyword in index.json file
      *
-     * @param  pathToFile is absolute path to index.json file
+     * @param  pathToSiteFolder is absolute path to folder where the site is downloaded
      * @param  word is the data string to be searched
      * @return an ArrayList that contain the site URLs that contain the given keyword
      *         or null in case that index.json file doesn't exist
@@ -83,9 +83,22 @@ public class IndexFileWork extends FileWork {
      */
 
     @Override
-    protected ArrayList<String> search(String pathToFile, String word) {
+    protected ArrayList<String> search(String pathToSiteFolder, String word) {
         try {
-            ArrayList<String> indexContent = read(pathToFile);
+            String rootPath = new String();
+            String[] path = pathToSiteFolder.split("\\\\");
+
+            for(int i = 0; i<path.length - 1; i++)
+            {
+                rootPath += path[i];
+                rootPath +="\\";
+            }
+
+            String siteDomainName = path[path.length - 1];
+            String pathToIndexFile = rootPath + "index.json";
+
+
+            ArrayList<String> indexContent = read(pathToIndexFile);
             ArrayList<String> retData = new ArrayList<>();
             int currentPoz;
 
@@ -106,7 +119,7 @@ public class IndexFileWork extends FileWork {
                     }
 
                     m = p.matcher(indexContent.get(i));
-                    if(m.find()) {
+                    if(m.find() && m.group(1).contains(siteDomainName)) {
                         retData.add(m.group(1));
                     }
 
@@ -125,7 +138,8 @@ public class IndexFileWork extends FileWork {
      * Function responsible for filtering the index.json file
      * by an filtering criteria
      *
-     * @param  pathToFile is absolute path to file
+     * @param  pathToSiteFolder is absolute path to the folder where
+     *                          the site is downloaded
      * @param  filter is an file extension on the basis of which the
      *                filtering is done
      * @return an ArrayList that contain the site URLs that contain the given filter
@@ -134,9 +148,22 @@ public class IndexFileWork extends FileWork {
      */
 
     @Override
-    protected ArrayList<String> filter(String pathToFile, String filter) {
+    protected ArrayList<String> filter(String pathToSiteFolder, String filter) {
         try {
-            ArrayList<String> indexContent = read(pathToFile);
+
+            String rootPath = new String();
+            String[] path = pathToSiteFolder.split("\\\\");
+
+            for(int i = 0; i<path.length - 1; i++)
+            {
+                rootPath += path[i];
+                rootPath +="\\";
+            }
+
+            String siteDomainName = path[path.length - 1];
+            String pathToIndexFile = rootPath + "index.json";
+
+            ArrayList<String> indexContent = read(pathToIndexFile);
             ArrayList<String> retData = new ArrayList<>();
             int currentPoz;
 
@@ -148,11 +175,6 @@ public class IndexFileWork extends FileWork {
                 if(indexContent.get(i).contains(filter)
                         && !indexContent.get(i).contains("{"))
                 {
-                    while(!indexContent.get(i).contains("]"))
-                    {
-                        i++;
-                    }
-
                     currentPoz = i;
 
                     while(!indexContent.get(i).contains("{"))
@@ -161,8 +183,10 @@ public class IndexFileWork extends FileWork {
                     }
 
                     Matcher m = p.matcher(indexContent.get(i));
-                    if(m.find()) {
-                        retData.add(m.group(1));
+                    if(m.find() && m.group(1).contains(siteDomainName)) {
+                        Matcher m2 = p.matcher(indexContent.get(currentPoz));
+                        m2.find();
+                        retData.add(m.group(1)+"/"+ m2.group(1));
                     }
 
                     i = currentPoz;

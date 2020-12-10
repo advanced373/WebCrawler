@@ -93,7 +93,7 @@ public class SearchAction extends InternAction {
         ArrayList<String> listOfURLs = new ArrayList<String>();
 
         try{
-            listOfURLs = fileWorkerObj.searchInIndexFile(keyWord, rootpath);
+            listOfURLs = fileWorkerObj.searchInIndexFile(keyWord, filePath);
 
             if(listOfURLs.isEmpty())
             {
