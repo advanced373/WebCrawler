@@ -1,4 +1,5 @@
 package file_handlers;
+import action.pack.URLNormalization;
 import action.pack.Util;
 
 import java.io.*;
@@ -47,12 +48,15 @@ public class HTMLFileWork extends FileWork{
             int i=0;
             String helperNormalization;
             String helpURL;
-            helpURL = siteURL.substring(0,siteURL.lastIndexOf("/"));
+            URL helpCheckURL = new URL(siteURL);
+            if(helpCheckURL.getPath() != "" && helpCheckURL.getPath() != "/")
+                helpURL = siteURL.substring(0,siteURL.lastIndexOf("/"));
+            else
+                helpURL = siteURL;
             while (matcher.find()) {
                 String dataToSend = matcher.group(0).replace("href=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
-                helperNormalization = Util.URLProcessing(helpURL,dataToSend);
-                URLs.add(helperNormalization);
+                helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
                 URLs.add(helperNormalization);
                 i++;
             }
@@ -61,12 +65,13 @@ public class HTMLFileWork extends FileWork{
             while (matcher.find()) {
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
-                helperNormalization = Util.URLProcessing(helpURL,dataToSend);
+                helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
                 URLs.add(helperNormalization);
                 URLs.add(helperNormalization);
                 i++;
             }
         }
+        myReader.close();
         return URLs;
     }
 

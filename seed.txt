@@ -1,2 +1,1 @@
-https://en.wikipedia.org/
-https://stackoverflow.com/
+https://dzone.com

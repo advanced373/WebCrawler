@@ -62,7 +62,6 @@ public class CheckFileType {
                     break;
             }
             filteredB = Arrays.copyOfRange(b,size,27);
-            System.out.println(filteredB+"\n");
         } finally {
             if (inputStream != null) {
                 inputStream.close();

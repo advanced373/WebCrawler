@@ -1,15 +1,19 @@
 package action.pack;
 
 
+import file_handlers.FileWorker;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
-import java.util.regex.*;
-
-
-import file_handlers.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class implements the download process starting from a file with URLs
@@ -21,7 +25,7 @@ public class Crawl extends ExternAction{
     /** seed URLs */
     private List<String> urlsToCrawl =new ArrayList<>();
     /** manages the thread pool*/
-    private ExecutorService executorService;
+    private ThreadPoolExecutor threadPoolExecutor;
     /** the number of threads in the pool*/
     private Integer numThreads;
     /** root directory where save downloaded pages */
@@ -32,12 +36,15 @@ public class Crawl extends ExternAction{
     private Integer logLevel;
     /** the maximum number of pages that can be downloaded*/
     private Integer depth;
-    /** used when checking the contents of the file robots.txt */
-    private Integer flagRobots;
-    /** used to download specific resources depending on the extension*/
-    private ArrayList<String> extension=new ArrayList<>();
+    /** used when checking the contents of the file robots.txt (if the value is 1 it must be checked otherwise not) */
+    private Integer flagRobots=0;
+    /** used if certain types of files can be downloaded (if the value is 1 it must be checked otherwise not) */
+    private Integer flagExtension=0;
     /** used to check if the page from a url has already been downloaded*/
-    private Set<String> visitedLinks=new HashSet();
+    private final Set<String> visitedLinks=new HashSet<>();
+    /** */
+    private Integer countPagesDownload;
+
 
 
     /** processing queue */
@@ -48,6 +55,8 @@ public class Crawl extends ExternAction{
     public String fileNameConf;
     /** the name of the file with the seed urls */
     public String fileNameUrlList;
+    /** used to download specific resources depending on the extension*/
+    public final ArrayList<String> extension=new ArrayList<>();
 
 
     /** CrawlTask constructor
@@ -63,27 +72,23 @@ public class Crawl extends ExternAction{
         this.fileNameConf = fileNameConf;
         this.fileNameUrlList = fileNameUrlList;
         this.cyclicBarrier=new CyclicBarrier(2);
+        this.threadPoolExecutor=null;
+        this.countPagesDownload=0;
 
         FileWorker fileWorker= new FileWorker();
-        ArrayList<String> confParam=new ArrayList<>(5);
+        ArrayList<String> confParam;
         try {
             this.urlsToCrawl=fileWorker.ReadFromURLsFile(this.fileNameUrlList);
             confParam=fileWorker.readFromConfigureFile(this.fileNameConf);
-            this.parseParam(confParam,this.numThreads,this.delay,this.rootDir,this.logLevel,this.depth);
-        }catch (FileNotFoundException | MalformedURLException exception) {
+            this.parseParam(confParam);
+        }catch (NumberFormatException  | IOException exception) {
             exception.printStackTrace();
-        }catch (NumberFormatException  numberFormatException){
-            numberFormatException.printStackTrace();
         }catch (CrawlerException crawlException){
             crawlException.print();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         if(parameters.get(0).equals("yes"))
             setFlagRobots(1);
-        else
-            setFlagRobots(0);
 
         setExtension(parameters);
         initProcessQueue();
@@ -106,42 +111,46 @@ public class Crawl extends ExternAction{
 
     public boolean  execute() {
 
-        this.executorService = Executors.newFixedThreadPool(this.numThreads);
+        this.threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool( this.numThreads );
 
-        int countPagesDownload=0;
-
-        while (!this.linksQueue.isEmpty() && countPagesDownload<this.depth){
+        while (!this.linksQueue.isEmpty() && this.countPagesDownload<this.depth){
             try {
+
                 String currentURL=linksQueue.take();
 
-                if(!this.checkURL(currentURL)) {
-                    System.out.println("Nu merge");
-                    continue;
+                if(!this.checkURL(currentURL,this.flagExtension)) {
+                   if(this.linksQueue.isEmpty()  && this.threadPoolExecutor.getActiveCount()>0){
+                       this.cyclicBarrier.await();
+                   }
+                   continue;
                 }
                 this.visitedLinks.add(currentURL);
-                System.out.println(currentURL);
+                this.addCountDownloadedPage();
 
-                CrawlTask crawlTask=new CrawlTaskNormal(currentURL,this,this.delay,this.rootDir);
-                this.executorService.submit(crawlTask);
 
-                synchronized (this){
-                    countPagesDownload++;
+                CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots );
+                this.threadPoolExecutor.submit( crawlTask );
+
+                if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
+                    this.cyclicBarrier.await();
                 }
+                System.out.println(this.countPagesDownload);
 
-                if(this.linksQueue.isEmpty()){
-                    cyclicBarrier.await();
-                }
-
-            }catch (InterruptedException | BrokenBarrierException exception){
+            }catch (InterruptedException  exception){
                 exception.printStackTrace();
+            } catch (BrokenBarrierException e) {
+                e.printStackTrace();
             }
         }
 
-        this.executorService.shutdown();
+
+        System.out.println("Barrier: "+this.cyclicBarrier.getNumberWaiting());
+        System.out.println("Count final "+this.countPagesDownload);
+        System.out.println("Task count "+this.threadPoolExecutor.getTaskCount());
+        this.threadPoolExecutor.shutdown();
 
         try {
-            this.executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            return true;
+            return this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         }catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
         }
@@ -170,8 +179,13 @@ public class Crawl extends ExternAction{
     }
 
     public void setExtension(ArrayList<String> extension) {
+        if(extension.size()==1){
+            this.flagExtension=0;
+            return;
+        }
         for(int i=1;i<extension.size();i++)
             this.extension.add((extension.get(i)));
+        this.flagExtension=1;
     }
 
     public void setFlagRobots(Integer flagRobots) {
@@ -180,21 +194,14 @@ public class Crawl extends ExternAction{
 
     /**
      * This method parses the configuration parameters and initializes them
-     * @param param
-     * @param numThreads
-     * @param delay
-     * @param rootDir
-     * @param logLevel
-     * @param depth
      * @throws CrawlerException when size of param differ from 5
      */
 
-    private void parseParam( ArrayList<String> param,Integer numThreads,Integer delay,String rootDir,Integer logLevel,Integer depth) throws CrawlerException {
+    private void parseParam(ArrayList<String> param) throws CrawlerException {
 
         if(param.size()!=5){
             throw new CrawlerException("100","The number of configuration parameters is different from 5.");
         }
-
 
         setNumThreads(Integer.parseInt(param.get(0).substring(10)));
         setDelay(Integer.parseInt(param.get(1).substring(6)));
@@ -216,20 +223,24 @@ public class Crawl extends ExternAction{
     }
 
     /**
-     * This method check if url already been visited or extension is ok
-     * @param url
+     * This method check if url already been visited or extension is ok if is case
+     * @param url value of url
      * @return true if the url has not been visited or the extension is allowed else false
      */
 
-    private boolean checkURL(String url){
+    private boolean checkURL(String url,Integer flagExtension){
 
         if(this.visitedLinks.contains(url))
             return false;
-        if(Util.checkUrlExtension(this.extension,url)) {
-            System.out.println("Extdsfhdsjk");
-            return true;
-        }
         return true;
+    }
+
+    public List<String> getUrlsToCrawl() {
+        return urlsToCrawl;
+    }
+
+    public Integer getFlagExtension() {
+        return flagExtension;
     }
 
     /**
@@ -240,11 +251,11 @@ public class Crawl extends ExternAction{
 
     private boolean isValidUrl(String url){
 
-        String regex = "((http|https)://)(www.)?"
-                    + "[a-zA-Z0-9@:%._\\+~#?&//=]"
-                    + "{2,256}\\.[a-z]"
-                    + "{2,6}\\b([-a-zA-Z0-9@:%"
-                    + "._\\+~#?&//=]*)";
+
+        //OWASP url regex
+        String regex =  "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
+                "(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)" +
+                "([).!';/?:,][[:blank:]])?$";
 
         Pattern p = Pattern.compile(regex);
         if (url == null) {
@@ -254,6 +265,25 @@ public class Crawl extends ExternAction{
         Matcher m = p.matcher(url);
 
         return m.matches();
+    }
+
+    public Integer getActiveCount() {
+        return this.threadPoolExecutor.getActiveCount();
+    }
+
+    public void addCountDownloadedPage(){
+        synchronized (this) {
+            this.countPagesDownload++;
+        }
+    }
+
+    private int checkURLConnection(String urlValue) throws IOException {
+        URL url=new URL(urlValue);
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setConnectTimeout( 2000 );
+        int code=connection.getResponseCode();
+        connection.disconnect();
+        return code;
     }
 
 }

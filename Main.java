@@ -1,17 +1,9 @@
-
-import action.pack.IAction;
-import action.pack.SearchAction;
 import action.pack.Crawl;
 import action.pack.IAction;
-import crawler_log.LogManager;
-import crawler_log.LoggerType;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class Main {
     static enum Options
@@ -37,7 +29,10 @@ class Main {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+
+    public static void main(String[] args)
+    {
+
         /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
         if(args.length < 1)
         {
@@ -56,22 +51,23 @@ class Main {
         }*/
 
         ArrayList<String> param=new ArrayList<>();
-        param.add("yes");
+        param.add("no");
+        
 
-        IAction action=new SearchAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\google.ro", "cuvant_de_cautat");
-        action.runAction();
+       // for(int i=0;i<100;i++) {
+            long startTime = System.currentTimeMillis();
+            try {
+                IAction action = new Crawl( "", "file.conf", "seed.txt", param );
+                action.runAction();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            long endTime = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
 
-        Logger logger = LogManager.getLogger(LoggerType.ConsoleLogger);
-        logger.log(Level.FINE,"Helllo!!");
-        logger.log(Level.FINE,"Helllo!!");
-        logger.log(Level.FINE,"Helllo!!");
+            System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );
+        //}
 
-        try {
-            action=new Crawl("","file.conf","seed.txt",param);
-            action.runAction();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
 
     }
 }

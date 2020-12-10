@@ -1,6 +1,5 @@
 package action.pack;
 
-import javax.sound.midi.SysexMessage;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
@@ -13,21 +12,35 @@ import java.util.*;
 
 
 public class Util {
-    
-    private static String getFileExtension(String url) {
-        if (url.lastIndexOf(".") != -1 && url.lastIndexOf(".") != 0)
-            return url.substring(url.lastIndexOf(".") + 1);
+
+
+    private static String getFileExtension(String file) throws MalformedURLException {
+        URL url = new URL( file );
+        String path = url.getPath();
+        if (path.lastIndexOf( "." ) != -1 && path.lastIndexOf( "." ) != 0)
+            return path.substring( path.lastIndexOf( "." ) + 1 );
         else return "";
     }
 
     public static boolean checkUrlExtension(ArrayList<String> allExtension, String url) {
-        String extension = getFileExtension(url);
-        if (extension != "") {
-            for (String ext : allExtension)
-                if (ext.equals(extension))
+
+        String extension = null;
+        try {
+            extension = getFileExtension( url );
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        if ("".equals( extension )) {
+            for (String ext : allExtension) {
+                if (ext.equals( extension ))
                     return true;
+            }
+        }else {
+            for (String ext : allExtension) {
+                if (ext.equals( extension ))
+                    return true;
+            }
         }
         return false;
     }
-
 }

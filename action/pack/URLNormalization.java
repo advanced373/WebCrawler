@@ -20,56 +20,58 @@ public class URLNormalization {
 
     public static String URLProcessing(String url, String resource) throws MalformedURLException {
 
-        String finalUrl = url;
-        System.out.println("am primit" + url + " " + resource + "\n");
-        //String finalUrl = Util.normalize(url);
-        //finalUrl="";
+        String finalUrl=url;
+        //System.out.println( url + " " + resource + "\n" );
+        //finalUrl = Util.normalize( url );
 
-        //to do pt oricate /
-        resource = resource.replace("///", "/");
-
-        int fragmentIndex = resource.indexOf("#");
-        if (fragmentIndex > -1)
-            resource = resource.substring(0, fragmentIndex);
-
-        fragmentIndex = resource.indexOf("?");
-        if (fragmentIndex > -1)
-            resource = resource.substring(0, fragmentIndex);
-
-        if (resource.startsWith("http://"))
-            return resource;
-        if (resource.startsWith("https://"))
-            return resource;
-
-        /*if (resource.startsWith("//") && URLNormalization.checkForDomain(resource)) {
-            //System.out.println("Resource sent " + resource + "\n");
-            return "http://" + resource.substring(2);
-        }*/
-
-        if (resource.startsWith("./")) {
-            if (finalUrl.endsWith("/"))
-                finalUrl = finalUrl + resource.substring(2);
-            else
-                finalUrl = finalUrl + resource.substring(1);
-
+        if (resource.startsWith( "/" )) {
+            URL newUrl = new URL( url );
+            finalUrl = newUrl.getProtocol() + "://" + newUrl.getHost() + "/" + resource;
         }
-        if (resource.startsWith("../")) {
-            if (finalUrl.endsWith("/")) {
-                finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
+
+
+        int fragmentIndex = resource.indexOf( "#" );
+        if (fragmentIndex > -1)
+            resource = resource.substring( 0, fragmentIndex );
+
+        fragmentIndex = resource.indexOf( "?" );
+        if (fragmentIndex > -1)
+            resource = resource.substring( 0, fragmentIndex );
+
+        if(resource.endsWith( "/" ))
+            resource = resource.substring( 0, resource.length() - 1 );
+
+        int check = 0;
+        while (resource.startsWith( "../" )) {
+            check = 1;
+            resource = resource.substring( 3 );
+        }
+        if (check == 1)
+            resource = "../" + resource;
+
+
+        if (resource.startsWith( "./" ))
+            if (finalUrl.endsWith( "/" ))
+                finalUrl = finalUrl + resource.substring( 2 );
+            else
+                finalUrl = finalUrl + resource.substring( 1 );
+
+
+        if (resource.startsWith( "../" )) {
+            if (finalUrl.endsWith( "/" )) {
+                finalUrl = finalUrl.substring( 0, finalUrl.length() - 1 );
             }
-            finalUrl = finalUrl.substring(0, finalUrl.lastIndexOf("/")) + resource.substring(2);
+            finalUrl = finalUrl.substring( 0, finalUrl.lastIndexOf( "/" ) ) + resource.substring( 2 );
+        }
+        if (finalUrl.endsWith( "/" )) {
+            finalUrl = finalUrl.substring( 0, finalUrl.length() - 1 );
         }
 
-       /* if (resource.startsWith("/")) {
-            if (finalUrl.endsWith("/"))
-                finalUrl = finalUrl + resource.substring(1);
-            else
-                finalUrl = finalUrl + resource;
-        } else {
-            if (URLNormalization.checkForDomain(resource))
-                finalUrl = "http://" + resource;
-        }*/
-        //System.out.println("finalurl sent " + finalUrl + "\n");
+        if (resource.startsWith( "http://" ))
+            return resource;
+        if (resource.startsWith( "https://" ))
+            return resource;
+
         return finalUrl;
     }
 

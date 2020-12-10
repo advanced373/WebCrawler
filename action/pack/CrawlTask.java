@@ -1,11 +1,13 @@
 package action.pack;
 
-import file_handlers.FileWork;
+import file_handlers.CheckFileType;
 import file_handlers.FileWorker;
 
+
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
 
@@ -44,7 +46,6 @@ public abstract class CrawlTask implements Runnable{
      * This method call crawl function
      */
 
-
     public abstract void run();
 
     /**
@@ -53,33 +54,41 @@ public abstract class CrawlTask implements Runnable{
      */
 
     protected void crawl() throws IOException {
-        URL url=new URL(this.urlToCrawl);
 
         try{
-            InputStream inputStream=url.openStream();
-
-            String path;
-            if(url.getPath().isEmpty()){
-                path = rootDir + '/' + url.getHost() + '/'+url.getHost();
-            }else {
-                path = rootDir + '/' + url.getHost() +'/' +url.getPath();
+            this.urlToCrawl=URLNormalization.URLProcessing( this.urlToCrawl ,"");
+            URL url=new URL(this.urlToCrawl);
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            connection.setConnectTimeout( 2000 );
+            if(connection.getResponseCode()<200 || 226 < connection.getResponseCode()) {
+                return;
             }
 
+            InputStream inputStream=connection.getInputStream();
+            String path=this.getPath( url );
             this.writePage(path,inputStream);
+            inputStream.close();
 
-
-           inputStream.close();
             FileWorker fileWorker = new FileWorker();
             ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
-            for(String URL : URLs)
-            {
-                this.webCrawler.linksQueue.put(URL);
-                //System.out.println(URL);
-            }
-            if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1)
-                this.webCrawler.cyclicBarrier.await();
+            this.addUrlLinkedQueue( URLs );
 
-           Thread.sleep(this.delay);
+            CheckFileType checkFileType = new CheckFileType();
+            if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1 &&
+                (checkFileType.getType(path) == CheckFileType.FileType.HTML
+                    || checkFileType.getType(path) == CheckFileType.FileType.DOC_HTML
+                    || checkFileType.getType(path) == CheckFileType.FileType.PHP)){
+                this.webCrawler.cyclicBarrier.await();
+            }
+
+            if(this.webCrawler.getFlagExtension()==1 && !Util.checkUrlExtension(this.webCrawler.extension, this.urlToCrawl )){
+                File file=new File( path );
+                if (!file.delete()) {
+                }
+            }
+            connection.disconnect();
+            Thread.sleep(this.delay);
+
 
         }catch (IOException  exception){
             throw new RuntimeException("Error connecting to URL",exception);
@@ -104,7 +113,6 @@ public abstract class CrawlTask implements Runnable{
             file.getParentFile().mkdirs();
             file.createNewFile();
 
-
             OutputStream outputStream=new FileOutputStream(file);
             int read;
             byte[] bytes=new byte[1024];
@@ -113,6 +121,26 @@ public abstract class CrawlTask implements Runnable{
             }
             outputStream.close();
 
+        }
+    }
+
+    /**
+     * Add new URL to processing queue
+     * @param URLs URLs extracted from the downloaded page
+     */
+
+    private void addUrlLinkedQueue(ArrayList<String> URLs)  {
+        if (URLs==null)
+            return;
+        for (String url:URLs)
+            this.webCrawler.linksQueue.add( url );
+    }
+
+    private String getPath(URL url){
+        if(url.getPath().isEmpty()){
+            return rootDir + '/' + url.getHost() + '/'+url.getHost();
+        }else {
+            return rootDir + '/' + url.getHost() +'/' +url.getPath();
         }
     }
 }
