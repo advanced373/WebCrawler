@@ -1,8 +1,14 @@
 import action.pack.Crawl;
 import action.pack.IAction;
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
+
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 class Main {
     static enum Options
@@ -28,8 +34,7 @@ class Main {
         }
     }
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws IOException {
         /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
         if(args.length < 1)
         {
@@ -48,7 +53,10 @@ class Main {
         }*/
         ArrayList<String> param=new ArrayList<>();
         param.add("yes");
-
+        Logger logger = LogManager.getLogger(LoggerType.ConsoleLogger);
+        logger.log(Level.FINE,"Helllo!!");
+        logger.log(Level.FINE,"Helllo!!");
+        logger.log(Level.FINE,"Helllo!!");
 
         try {
             IAction action=new Crawl("","file.conf","seed.txt",param);
