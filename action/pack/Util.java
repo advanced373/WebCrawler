@@ -1,11 +1,13 @@
 package action.pack;
 
+import javax.sound.midi.SysexMessage;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
 
 /**
  * Class providing a wide range of utilities
+ *
  * @author CorinaTanase
  */
 
@@ -19,28 +21,68 @@ public class Util {
 
     public static String URLProcessing(String url, String resource) throws MalformedURLException {
 
-        String finalUrl;
+        String finalUrl = url;
+         //System.out.println("am primit" +url + " " + resource + "\n");
+        //String finalUrl = Util.normalize(url);
+        //finalUrl="";
 
-        finalUrl = Util.normalize(url);
+        resource=resource.replace("///","/");
 
-        if (resource.startsWith("./"))
+        int fragmentIndex = resource.indexOf("#");
+        if(fragmentIndex > -1)
+            resource=resource.substring( 0,fragmentIndex );
+
+        fragmentIndex = resource.indexOf("?");
+        if(fragmentIndex > -1)
+            resource=resource.substring( 0,fragmentIndex );
+
+        if (resource.startsWith("http://") || resource.startsWith("https://")) {
+            //System.out.println("Resource sent " + resource + "\n");
+            return resource;
+        }
+
+        if (resource.startsWith("//") && Util.checkForDomain(resource)) {
+            //System.out.println("Resource sent " + resource + "\n");
+            return "http://"+resource.substring(2);
+        }
+
+
+        if (resource.startsWith("./")) {
             if (finalUrl.endsWith("/"))
                 finalUrl = finalUrl + resource.substring(2);
             else
                 finalUrl = finalUrl + resource.substring(1);
 
-
-        if (resource.startsWith("../"))
+        } else if (resource.startsWith("../")) {
             if (finalUrl.endsWith("/")) {
-                finalUrl=finalUrl.substring(0,finalUrl.length()-1);
-                finalUrl = finalUrl.substring(0,finalUrl.lastIndexOf("/"))+ resource.substring(2);
-            }
-            else {
-                finalUrl = finalUrl.substring(0,finalUrl.lastIndexOf("/"))+ resource.substring(2);
-            }
+                finalUrl = finalUrl.substring(0, finalUrl.length() - 1);
+                finalUrl = finalUrl.substring(0, finalUrl.lastIndexOf("/")) + resource.substring(2);
 
+            } else {
+                finalUrl = finalUrl.substring(0, finalUrl.lastIndexOf("/")) + resource.substring(2);
+
+            }
+        } else if (resource.startsWith("/")) {
+            if (finalUrl.endsWith("/"))
+                finalUrl = finalUrl + resource.substring(1);
+            else
+                finalUrl = finalUrl + resource;
+
+        } else {
+            if (Util.checkForDomain(resource))
+                finalUrl="http://"+resource;
+        }
+        //System.out.println("finalurl sent " + finalUrl + "\n");
         return finalUrl;
     }
+
+
+    private static boolean checkForDomain(String s) {
+        if (s.toLowerCase().contains(".com") || s.toLowerCase().contains(".ro") || s.toLowerCase().contains(".org") || s.toLowerCase().contains(".net") || s.toLowerCase().contains(".int") || s.toLowerCase().contains(".mil"))
+            return !s.startsWith("http");
+        return false;
+    }
+
 
     /**
      * Function implementing normalization of URLs
@@ -54,11 +96,14 @@ public class Util {
         final URL url;
         try {
             url = new URI(taintedURL).normalize().toURL();
+            //System.out.println("url acum " + url + "\n");
         } catch (URISyntaxException e) {
             throw new MalformedURLException(e.getMessage());
         }
 
         final String path = url.getPath().replace("/$", "");
+        //System.out.println("path acum " + path + "\n");
+        //final String path=url.getPath();
         final SortedMap<String, String> params = createParameterMap(url.getQuery());
         final int port = url.getPort();
         final String queryString;
@@ -80,7 +125,6 @@ public class Util {
                 + (port != -1 && port != 80 ? ":" + port : "")
                 + path + queryString;
     }
-
 
 
     private static SortedMap<String, String> createParameterMap(final String queryString) {
@@ -153,16 +197,16 @@ public class Util {
     }
 
     private static String getFileExtension(String url) {
-        if(url.lastIndexOf(".") != -1 && url.lastIndexOf(".") != 0)
-            return url.substring(url.lastIndexOf(".")+1);
+        if (url.lastIndexOf(".") != -1 && url.lastIndexOf(".") != 0)
+            return url.substring(url.lastIndexOf(".") + 1);
         else return "";
     }
 
-    public static boolean checkUrlExtension(ArrayList<String > allExtension,String url){
-        String extension=getFileExtension(url);
-        if(extension!=""){
-            for (String ext:allExtension)
-                if(ext.equals(extension))
+    public static boolean checkUrlExtension(ArrayList<String> allExtension, String url) {
+        String extension = getFileExtension(url);
+        if (extension != "") {
+            for (String ext : allExtension)
+                if (ext.equals(extension))
                     return true;
         }
         return false;

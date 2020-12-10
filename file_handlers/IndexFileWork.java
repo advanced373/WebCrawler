@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -172,5 +174,62 @@ public class IndexFileWork extends FileWork {
         } catch (FileNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Function responsible to add a new keyword to an existing entry in
+     * index.json file
+     *
+     * @param  indexFilePath is absolute path to the index.json file
+     * @param  keyWord is the word to be added
+     * @param  filePath is the pat to the file without the path to the root folder
+     * @return an ArrayList that contain the site URLs that contain the given filter
+     *         or null in case that index.json file doesn't exist
+     */
+
+    protected boolean addKeyWord(String indexFilePath, String keyWord, String filePath)
+    {
+        String strToWrite = new String();
+
+        try {
+
+            File indexFile = new File(indexFilePath);
+
+            int lineNum = 0;
+
+            Scanner scanner = new Scanner(indexFile);
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                lineNum++;
+                strToWrite += line;
+                strToWrite += "\n";
+                if(line.contains(filePath)) {
+                    while(!line.contains("keyword") && !line.contains("["))
+                    {
+                        line = scanner.nextLine();
+                        lineNum++;
+                        strToWrite += line;
+                        strToWrite += "\n";
+                    }
+                    strToWrite += "\t\t\t\t";
+                    strToWrite = strToWrite + "\"" + keyWord + "\",\n";
+                }
+            }
+
+            this.write(indexFilePath, strToWrite);
+
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 }

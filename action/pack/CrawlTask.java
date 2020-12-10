@@ -1,8 +1,12 @@
 package action.pack;
 
+import file_handlers.FileWork;
+import file_handlers.FileWorker;
+
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
 
 /**
@@ -63,10 +67,15 @@ public abstract class CrawlTask implements Runnable{
 
             this.writePage(path,inputStream);
 
-            //adaugare exragere link
 
            inputStream.close();
-
+            FileWorker fileWorker = new FileWorker();
+            ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
+            for(String URL : URLs)
+            {
+                this.webCrawler.linksQueue.put(URL);
+                //System.out.println(URL);
+            }
             if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1)
                 this.webCrawler.cyclicBarrier.await();
 
