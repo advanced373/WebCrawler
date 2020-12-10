@@ -103,6 +103,10 @@ public class FileWorker {
                 i++;
                 int nrOfElements = Integer.parseInt(dataArray.get(i));
                 i++;
+                if(nrOfElements == 0)
+                {
+                    entry = entry + "\t\t\t],\n";
+                }
                 for (int j = i; j < i + nrOfElements; j++) {
                     entry += "\t\t\t\t";
                     if (j == i + nrOfElements - 1) {
@@ -296,17 +300,16 @@ public class FileWorker {
      *
      * @author Vlijia Stefan
      * @param argument is the keyword to search
-     * @param pathToRootFolder is the absolute path to the root folder
+     * @param pathToSiteFolder is the absolute path to the folder
+     *                         where the site is downloaded
      * @return a list of site URLs that contain the given keyword
      *         or null in case that keyword doesn't exist
      */
 
-    public ArrayList<String> searchInIndexFile(String argument, String pathToRootFolder) throws FileNotFoundException {
-
-        String indexFilePath = pathToRootFolder + "\\index.json";
+    public ArrayList<String> searchInIndexFile(String pathToSiteFolder, String argument) throws FileNotFoundException {
 
         fileWork = new IndexFileWork();
-        return fileWork.search(indexFilePath, argument);
+        return fileWork.search(argument, pathToSiteFolder);
     }
 
     /**
@@ -329,18 +332,18 @@ public class FileWorker {
      * by an filtering criteria
      *
      * @author Vlijia Stefan
-     * @param  pathToRootFolder is absolute path to the root folder
+     * @param  pathToSiteFolder is absolute path to the folder where
+     *                          the site is downloaded
      * @param  argument is an file extension on the basis of which the
      *                  filtering is done
      * @return an ArrayList that contain the site URLs that contain the given filter
      *         or null in case that index.json file doesn't exist
      */
 
-    public ArrayList<String> filterInIndexFile(String argument, String pathToRootFolder) {
-        String indexFilePath = pathToRootFolder + "/index.json";
+    public ArrayList<String> filterInIndexFile(String argument, String pathToSiteFolder) {
 
         fileWork = new IndexFileWork();
-        return fileWork.filter(indexFilePath, argument);
+        return fileWork.filter(pathToSiteFolder, argument);
     }
 
     /**

@@ -85,7 +85,7 @@ public class Robots {
         }
         catch (IOException e)
         {
-            return false;
+            return true;
         }
 
         if (strCommands.contains(DISALLOW))
