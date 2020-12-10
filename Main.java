@@ -1,10 +1,9 @@
 
-import action.pack.IAction;
-import action.pack.SearchAction;
-import action.pack.Crawl;
+import action.pack.*;
 import action.pack.IAction;
 import crawler_log.LogManager;
 import crawler_log.LoggerType;
+import file_handlers.FileWorker;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,23 +54,30 @@ class Main {
             //rularea actiunii a esuat
         }*/
 
-        ArrayList<String> param=new ArrayList<>();
-        param.add("yes");
-
-        IAction action=new SearchAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\google.ro", "cuvant_de_cautat");
+        /*
+        IAction action=new SearchAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "Foundation");
+        action.runAction();
+        */
+        IAction action=new FilterAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "html");
         action.runAction();
 
+        /*
         Logger logger = LogManager.getLogger(LoggerType.ConsoleLogger);
         logger.log(Level.FINE,"Helllo!!");
         logger.log(Level.FINE,"Helllo!!");
         logger.log(Level.FINE,"Helllo!!");
+        */
+
+        /*
+        ArrayList<String> param=new ArrayList<>();
+        param.add("yes");
 
         try {
-            action=new Crawl("","file.conf","seed.txt",param);
+            IAction action=new Crawl("","file.conf","seed.txt",param);
             action.runAction();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
+        */
     }
 }
