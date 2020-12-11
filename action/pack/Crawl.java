@@ -119,10 +119,10 @@ public class Crawl extends ExternAction{
                 String currentURL=linksQueue.take();
 
                 if(!this.checkURL(currentURL,this.flagExtension)) {
-                   if(this.linksQueue.isEmpty()  && this.threadPoolExecutor.getActiveCount()>0){
-                       this.cyclicBarrier.await();
-                   }
-                   continue;
+                    if(this.linksQueue.isEmpty()  && this.threadPoolExecutor.getActiveCount()>0){
+                        this.cyclicBarrier.await();
+                    }
+                    continue;
                 }
                 this.visitedLinks.add(currentURL);
                 this.addCountDownloadedPage();
