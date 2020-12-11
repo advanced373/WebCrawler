@@ -63,6 +63,8 @@ public class SitemapAction extends InternAction {
             FileWriter myWriter = new FileWriter(siteMap);
             myWriter.write(currentFile.getName()+"\n");
             generateSitemap(currentFile,myWriter);
+            myWriter.close();
+            //de apelat logger
             return true;
         } catch (IOException e) {
             System.out.println("An error occurred.");
