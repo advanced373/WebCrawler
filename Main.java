@@ -1,13 +1,13 @@
-import action.pack.Crawl;
-import action.pack.IAction;
+import action.pack.*;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 
 class Main {
-    static enum Options
-    {
+    static enum Options {
         List("-list"),
         Crawl("-crawl"),
         Search("-search"),
@@ -30,32 +30,41 @@ class Main {
     }
 
 
-    public static void main(String[] args)
-    {
-
-        /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
-        if(args.length < 1)
-        {
-            //nr gresit de parametrii
+    public static void main(String[] args) {
+        try {
+            if (args.length < 1) {
+                throw new CrawlerException("101", "Missing parameters");
+                //de adaugat log
+            }
+            if (!contains(Options.class, args[0])) {
+                throw new CrawlerException("102", "Invalid option");
+                //de adaugat log
+            }
+            Logger loggerObj = new Logger();
+            loggerObj.newAction(args[0], args);
+            if (!loggerObj.runAction()) {
+                throw new CrawlerException("103", "Unssucceseful action");
+                //de adaugat log
+            }
+        } catch (CrawlerException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+            //de adaugat log
         }
-        if(!contains(Options.class, args[0]))
-        {
-            //optiune inexistenta.
-        }
 
-        Logger loggerObj = new Logger();
-        loggerObj.newAction(args[0], args);
-        if(!loggerObj.runAction())
-        {
-            //rularea actiunii a esuat
-        }*/
+//        ArrayList<String> param = new ArrayList<>();
+//        param.add("no");
+//
+//
+//        IAction c = new SitemapAction("D:\\Download\\dzone.com");
+//        c.runAction();
 
-        ArrayList<String> param=new ArrayList<>();
-        param.add("no");
-        
 
-       // for(int i=0;i<100;i++) {
-            long startTime = System.currentTimeMillis();
+        //IAction c= new SitemapAction("D:\\Download\\dzone.com","sitemap.txt");
+        //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
+
+        // for(int i=0;i<100;i++) {
+           /* long startTime = System.currentTimeMillis();
             try {
                 IAction action = new Crawl( "", "file.conf", "seed.txt", param );
                 action.runAction();
@@ -65,7 +74,7 @@ class Main {
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - startTime;
 
-            System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );
+            System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );*/
         //}
 
 
