@@ -1,3 +1,10 @@
+/*
+ * CheckFileType
+ *
+ * Version 1.0
+ *
+ * All rights reserved.
+ */
 package file_handlers;
 
 import java.io.FileInputStream;
@@ -6,9 +13,13 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-
+/**
+ * Class implemented for checking file type based on magic number
+ */
 public class CheckFileType {
-
+    /**
+     * Predefined magic numbers depending on file type
+     */
     public enum FileType {
         DOC_html("3C21444F43545950452068746D6C3E"),
         DOC_HTML("3C21444F43545950452048544D4C3E"),
@@ -30,8 +41,14 @@ public class CheckFileType {
         }
 
     }
+
+    /**
+     * Method returning file type
+     * @param filePath path to file that need to be checked
+     * @return
+     * @throws IOException
+     */
     public static FileType getType(String filePath) throws IOException {
-        // get header
         String fileHead = getFileHeader(filePath);
 
         if (fileHead != null && fileHead.length() > 0) {
@@ -45,6 +62,15 @@ public class CheckFileType {
         }
         return null;
     }
+
+    /**
+     * Returns first 28 bytes from the file
+     * When testing, I observed that some files come with 0A at the begining
+     * of the file so ignored them
+     * @param filePath path to file that need to be checked
+     * @return
+     * @throws IOException
+     */
     private static String getFileHeader(String filePath) throws IOException {
         byte[] b = new byte[28];
         InputStream inputStream = null;
@@ -69,6 +95,12 @@ public class CheckFileType {
         }
         return bytesToHex(filteredB);
     }
+
+    /**
+     * Method that makes conversion from bytes array to hex value
+     * @param src byte array that has to be converted
+     * @return
+     */
     public static String bytesToHex(byte[] src){
         StringBuilder stringBuilder = new StringBuilder("");
         if (src == null || src.length <= 0) {

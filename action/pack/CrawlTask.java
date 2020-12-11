@@ -72,12 +72,9 @@ public abstract class CrawlTask implements Runnable{
             FileWorker fileWorker = new FileWorker();
             ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
             this.addUrlLinkedQueue( URLs );
-
             CheckFileType checkFileType = new CheckFileType();
             if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1 &&
-                (checkFileType.getType(path) == CheckFileType.FileType.HTML
-                    || checkFileType.getType(path) == CheckFileType.FileType.DOC_HTML
-                    || checkFileType.getType(path) == CheckFileType.FileType.PHP)){
+                (checkFileType.getType(path) != null)){
                 this.webCrawler.cyclicBarrier.await();
             }
 

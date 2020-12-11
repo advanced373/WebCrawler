@@ -1,12 +1,22 @@
+/*
+ * HTMLFileWork
+ *
+ * Version 1.0
+ *
+ * All rights reserved.
+ */
 package file_handlers;
 import action.pack.URLNormalization;
 import action.pack.Util;
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /**
@@ -21,6 +31,7 @@ public class HTMLFileWork extends FileWork{
      * @param bothValues is a string that contains both siteURL (which is  and path
      * @return list of URLs
      */
+    private final String fileName="help.txt";
     @Override
     protected  ArrayList<String> read(String bothValues) throws IOException {
         String parts[];
@@ -30,6 +41,7 @@ public class HTMLFileWork extends FileWork{
         File inFile = new File(fileName);
         Pattern pattern;
         Matcher matcher;
+        FileWriter valuesForWrite = new FileWriter(this.fileName,true);
         pattern=Pattern.compile("([^\\s]+(\\.(?i)(html|php))$)");
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
@@ -57,6 +69,7 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("href=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
+                valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
                 URLs.add(helperNormalization);
                 i++;
             }
@@ -66,70 +79,91 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
-                URLs.add(helperNormalization);
+                valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
                 URLs.add(helperNormalization);
                 i++;
             }
         }
+        valuesForWrite.close();
         myReader.close();
         return URLs;
     }
-
+    /**
+     * Function responsible for writing URLs to html file from where they were read.
+     *
+     * @param fileName is a string that contains path to file
+     * @param data is a string that contains siteURL
+     * @return list of URLs
+     */
     @Override
     protected void write(String fileName, String data) throws IOException {
         URL myURL = new URL(data);
         if(myURL.getPath() != null) {
-            String mySiteName = myURL.getHost();
-            String fileNameCopy=fileName;
+            String parts[];
+            String filesForHelp[];
             String pathToSite = "";
-            String parts[] = fileName.split("\\\\");
+            String fileNameCopy=fileName;
+            parts = fileName.split("/");
             String nameOfMyFile = parts[parts.length-1];
-            String newFileContent="";
-            for (String part : parts) {
-                if (!part.equals(mySiteName)) {
-                    pathToSite += part;
-                    pathToSite += "\\";
-                } else
-                {
-                    pathToSite += part;
-                    pathToSite += "\\";
-                    break;
+            String newFileContent = "";
+            String oldValue="";
+            File inFile = new File(this.fileName);
+            Scanner myReaderValues = new Scanner(inFile);
+            while (myReaderValues.hasNextLine()) {
+                String row = myReaderValues.nextLine();
+                filesForHelp = row.split(" ");
+                if (data.equals(filesForHelp[1]) == true) {
+                    pathToSite = filesForHelp[0];
+                    oldValue = filesForHelp[2];
                 }
-
             }
-            File f = new File(pathToSite);
-            File[] matchingFiles = f.listFiles(new FilenameFilter() {
-                public boolean accept(File dir, String name) {
-                    return name.endsWith("html") || name.endsWith("php");
+            if (pathToSite != "") {
+                File f = new File(pathToSite);
+                Matcher matcher;
+                Pattern pattern;
+                Scanner myReader = new Scanner(f);
+                System.out.println(oldValue+"\n");
+                while (myReader.hasNextLine()) {
+                    String row = myReader.nextLine();
+                    pattern = Pattern.compile("href=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"|href=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"|src=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"|src=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"");
+                    matcher = pattern.matcher(row);
+                    if (matcher.find()) {
+                        if(matcher.group(0).equals("href=\""+oldValue+"\""))
+                        {
+                            row = row.replace(matcher.group(0), "href=\"" + fileNameCopy + "\"");
+                            System.out.println("Aici e ok!\n");
+                            synchronized (this)
+                            {
+                                LogManager.getLogger(LoggerType.FileLogger).log(Level.INFO,row + "was replaced!\n");
+                            }
+                        }
+                    }
+                    newFileContent = newFileContent + row + System.lineSeparator();
                 }
-            });
-            Matcher matcher;
-            Pattern pattern;
-            Scanner myReader = new Scanner(matchingFiles[0]);
-            String regex = "href=\".*"+ nameOfMyFile+"\"";
-            while (myReader.hasNextLine()) {
-                String row = myReader.nextLine();
-                pattern= Pattern.compile(regex);
-                matcher= pattern.matcher(row);
-                if(matcher.find())
-                {
-                    row = row.replace(matcher.group(0),"href=\""+fileNameCopy+"\"");
-                    System.out.println(row);
-                }
-                newFileContent = newFileContent + row + System.lineSeparator();
+                myReader.close();
+                FileWriter writer = new FileWriter(pathToSite);
+                writer.write(newFileContent);
+                writer.close();
             }
-            myReader.close();
-            FileWriter writer = new FileWriter(matchingFiles[0]);
-            writer.write(newFileContent);
-            writer.close();
         }
     }
-
+    /**
+     * Has no purpose in this class, is used only for override
+     * @param pathToFile
+     * @param word is a keyword
+     * @return
+     */
     @Override
     protected ArrayList<String> search(String pathToFile, String word) {
         return null;
     }
 
+    /**
+     * Has no purpose in this class, is used only for override
+     * @param pathToFile
+     * @param filter is a word by which we are filtering data from file
+     * @return
+     */
     @Override
     protected ArrayList<String> filter(String pathToFile, String filter) {
         return null;
