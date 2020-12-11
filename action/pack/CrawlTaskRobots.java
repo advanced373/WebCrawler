@@ -2,8 +2,6 @@ package action.pack;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.concurrent.BrokenBarrierException;
 
 public class CrawlTaskRobots extends CrawlTask{
     /**
@@ -25,14 +23,10 @@ public class CrawlTaskRobots extends CrawlTask{
             if(Robots.robotParser(url))
                 this.crawl();
             else {
-                if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1)
-                    this.webCrawler.cyclicBarrier.await();
+                System.out.println(this.urlToCrawl);
+                return;
             }
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (BrokenBarrierException e) {
             e.printStackTrace();
         }
     }
