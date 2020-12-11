@@ -57,9 +57,10 @@ class Main {
         /*
         IAction action=new SearchAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "Foundation");
         action.runAction();
-        */
-        IAction action=new FilterAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "html");
-        action.runAction();
+         */
+/*
+        action=new FilterAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "html");
+        action.runAction();*/
 
         /*
         Logger logger = LogManager.getLogger(LoggerType.ConsoleLogger);
@@ -68,7 +69,7 @@ class Main {
         logger.log(Level.FINE,"Helllo!!");
         */
 
-        /*
+
         ArrayList<String> param=new ArrayList<>();
         param.add("yes");
 
@@ -78,6 +79,6 @@ class Main {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        */
+
     }
 }
