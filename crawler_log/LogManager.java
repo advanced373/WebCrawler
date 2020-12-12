@@ -16,13 +16,14 @@ import java.util.logging.*;
 /**
  * Singleton class LogManager used for logging web crawler's actions
  *
- * @author CorinaTanase
+ * @author CorinaTanase and Stoica Mihai
  */
 
 public class LogManager {
 
     private static LogManager singleInstance;
-
+    private static Logger consoleLogger;
+    private static Logger fileLogger;
     private LogManager() {
     }
 
@@ -44,34 +45,44 @@ public class LogManager {
         return singleInstance;
     }
 
-    public static Logger getLogger(LoggerType type, String fileName) {
-        if (type == LoggerType.FileLogger) {
-            return Logger.getLogger("CrawlerFileLog", fileName);
-        } else {
-            // to do: throw exception for unsupported logger type
-            return null;
-        }
-    }
-
+    /**
+     * Method for getting the right logger (console or file)
+     * @param type must be one of LoggerType values
+     * @return
+     * @throws IOException
+     */
     public static Logger getLogger(LoggerType type) throws IOException {
-        if (type == LoggerType.FileLogger) {
-            Logger logger = Logger.getLogger("CrawlerFileLog");
+        if (type == LoggerType.FileLogger && fileLogger == null) {
+            fileLogger = Logger.getLogger("CrawlerFileLog");
+            fileLogger.setUseParentHandlers(false);
             Handler fileHandler = new FileHandler("logger.log", 2000, 1,true);
             FileLogFormatter fileLogFormatter = new FileLogFormatter();
             fileHandler.setFormatter(fileLogFormatter);
-            fileHandler.setLevel(Level.FINE);
-            logger.addHandler(fileHandler);
-            return logger;
-        } else {
-            Logger logger = Logger.getLogger("CrawlerConsoleLog");
+            fileHandler.setLevel(Level.ALL);
+            fileHandler.setLevel(Level.ALL);
+            fileLogger.addHandler(fileHandler);
+            return fileLogger;
+        }
+        if ( type == LoggerType.ConsoleLogger && consoleLogger == null)
+        {
+            consoleLogger = Logger.getLogger("CrawlerConsoleLog");
             //java.util.logging.LogManager.getLogManager().readConfiguration(new FileInputStream("src/mylogging.properties"));
             Handler consoleHandler = new ConsoleHandler();
             ConsoleLogFormatter consoleLogFormatter = new ConsoleLogFormatter();
             consoleHandler.setFormatter(consoleLogFormatter);
             consoleHandler.setLevel(Level.ALL);
-            logger.addHandler(consoleHandler);
-            logger.setLevel(Level.FINE);
-            return logger;
+            consoleLogger.setLevel(Level.ALL);
+            consoleLogger.addHandler(consoleHandler);
+            return consoleLogger;
         }
+        if(type == LoggerType.FileLogger && fileLogger != null)
+        {
+            return fileLogger;
+        }
+        if(type == LoggerType.ConsoleLogger && consoleLogger != null)
+        {
+            return consoleLogger;
+        }
+        return null;
     }
 }
