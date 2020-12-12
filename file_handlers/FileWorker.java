@@ -440,12 +440,11 @@ public class FileWorker {
      * @return list of URLs extracted from file
      * @author Stoica Mihai
      */
-
     public ArrayList<String> readFromHTMLFile(String siteURL, String path) throws IOException {
         fileWork = new HTMLFileWork();
         String bothValues = siteURL+"!"+path;
         ArrayList<String> URLs=fileWork.read(bothValues);
-        //fileWork.write(path,siteURL);
+        fileWork.write(path,siteURL);
         fileWork = null;
         return URLs;
     }

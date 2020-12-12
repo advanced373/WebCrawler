@@ -8,8 +8,10 @@
 
 package action.pack;
 
+import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 /**
  * This class has a management roll. It interprets the
@@ -57,49 +59,45 @@ public class Logger {
         {
             //crate a help action
         }
-        if(option.equals("-crawl"))
+        if(option.equals("Crawl"))
         {
-            boolean robots = atributes[atributes.length-2].equals("-robots");
-            if(robots)
-            {
-                //create a crawl action with robots option
+            //boolean robots = atributes[atributes.length-2].equals("-robots");
+            ArrayList<String> param = new ArrayList<>();
+            param.add(atributes[0]);
+
+            try {
+                this.actionObj = new Crawl("", "file.conf", "seed.txt", param);
             }
-            else
+            catch (IOException exception)
             {
-                //create a crawl action without robots option
+                exception.printStackTrace();
             }
         }
-        if(option.equals("-list"))
+        if(option.equals("Search"))
         {
             if(!isValidPath(atributes[atributes.length-1]))
             {
                 //invalid path
+                System.out.println("invalid path");
             }
-            //create a list action
+            this.actionObj=new SearchAction(atributes[0],atributes[1],atributes[2]);
         }
-        if(option.equals("-search"))
+        if(option.equals("Sitemap"))
+        {
+            if(!isValidPath(atributes[atributes.length-1]))
+            {
+                System.out.println("invalid path");
+            }
+           this.actionObj=new SitemapAction(atributes[1]);
+        }
+        if(option.equals("Filter"))
         {
             if(!isValidPath(atributes[atributes.length-1]))
             {
                 //invalid path
+                System.out.println("invalid path");
             }
-            //create a search action
-        }
-        if(option.equals("-sitemap"))
-        {
-            if(!isValidPath(atributes[atributes.length-1]))
-            {
-                //invalid path
-            }
-            //create a sitemap action
-        }
-        if(option.equals("-filter"))
-        {
-            if(!isValidPath(atributes[atributes.length-1]))
-            {
-                //invalid path
-            }
-            //create a filter action
+            this.actionObj=new FilterAction(atributes[1],atributes[2],atributes[3]);
         }
     }
 
