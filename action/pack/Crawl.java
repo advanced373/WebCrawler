@@ -3,6 +3,7 @@ package action.pack;
 
 import file_handlers.FileWorker;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,6 +31,8 @@ public class Crawl extends ExternAction{
     private Integer numThreads;
     /** root directory where save downloaded pages */
     private String rootDir;
+
+    private File indexfile;
     /** After each downloaded page it will wait a period depending on the value of this parameter */
     private Integer delay;
     /** It's a level */
@@ -111,6 +114,8 @@ public class Crawl extends ExternAction{
 
     public boolean  execute() {
 
+        this.indexfile = new File(rootDir+"\\index.json");
+
         this.threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool( this.numThreads );
 
         while (!this.linksQueue.isEmpty() && this.countPagesDownload<this.depth){
@@ -128,7 +133,7 @@ public class Crawl extends ExternAction{
                 this.addCountDownloadedPage();
 
 
-                CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots );
+                CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots, indexfile);
                 this.threadPoolExecutor.submit( crawlTask );
 
                 if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
