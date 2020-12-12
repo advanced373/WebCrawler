@@ -1,7 +1,9 @@
 package action.pack;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.Semaphore;
 
 public class CrawlTaskRobots extends CrawlTask{
     /**
@@ -12,8 +14,8 @@ public class CrawlTaskRobots extends CrawlTask{
      * @param delay      After each downloaded page it will wait a period depending on the value of this parameter
      * @param rootDir    the directory where the download pages are stored
      */
-    public CrawlTaskRobots(String urlToCrawl, Crawl webCrawler, Integer delay, String rootDir) {
-        super(urlToCrawl, webCrawler, delay, rootDir);
+    public CrawlTaskRobots(String urlToCrawl, Crawl webCrawler, Integer delay, String rootDir, File indexFile) {
+        super(urlToCrawl, webCrawler, delay, rootDir, indexFile);
     }
 
     @Override

@@ -69,7 +69,7 @@ public class FilterAction extends InternAction {
                     String pathToFile  = listOfURLs.get(i).toString();
                     pathToFile = pathToFile.replaceFirst("(http://|https://)", "");
                     pathToFile = pathToFile.replace("/", "\\");
-                    pathToFile = rootpath + "\\" + pathToFile;
+                    //pathToFile = rootpath + "\\" + pathToFile;
 
                     System.out.println(pathToFile+"\n");
 
