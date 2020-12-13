@@ -9,7 +9,6 @@
 package action.pack;
 
 import java.io.IOException;
-
 /**
  * Abstract class that extends Action abstract class
  *
@@ -18,15 +17,20 @@ import java.io.IOException;
 
 public abstract class InternAction extends Action {
 
+    /**
+     * Class constructor
+     *
+     * @param filePath is the path to site directory
+     */
+
     public InternAction(String filePath) {
         super(filePath);
     }
 
     /**
-     *Method that will be overrided by an concret
+     * Method that will be overrided by an concret
      * action class.
-     * */
+     */
 
     public abstract boolean runAction() throws IOException;
-
 }

@@ -1,4 +1,9 @@
 import action.pack.*;
+import action.pack.IAction;
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
+import file_handlers.FileWorker;
+import action.pack.Crawl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -61,6 +66,24 @@ class Main {
 //        c.runAction();
 
 
+        /*
+        IAction action=new SearchAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "Foundation");
+        action.runAction();
+         */
+/*
+        action=new FilterAction("D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root","D:\\anul 4\\semestrul 1\\ingineria programarii\\tema1\\root\\ajax.googleapis.com", "html");
+        action.runAction();*/
+
+        /*
+        Logger logger = LogManager.getLogger(LoggerType.ConsoleLogger);
+        logger.log(Level.FINE,"Helllo!!");
+        logger.log(Level.FINE,"Helllo!!");
+        logger.log(Level.FINE,"Helllo!!");
+        */
+
+        ArrayList<String> param=new ArrayList<>();
+        param.add("no");
+        
         //IAction c= new SitemapAction("D:\\Download\\dzone.com","sitemap.txt");
         //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
 

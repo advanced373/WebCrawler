@@ -51,8 +51,7 @@ public class FileWorker {
         return fileWork.search(pathToFile, word);
     }
 
-    public ArrayList<String> FilterInNormalFile(String pathToFile, String filter)
-    {
+    public ArrayList<String> FilterInNormalFile(String pathToFile, String filter) throws FileNotFoundException {
         this.fileWork = new NormalFileWork();
         return fileWork.filter(pathToFile, filter);
     }
@@ -62,11 +61,13 @@ public class FileWorker {
      * @author Vlijia Stefan
      * @param  pathToRootFolder is absolute path to the root folder
      * @param  dataArray is an array with data for the new entry
+     * @param  dirOfFile flag that specify if it will add a file entry
+     *                   or it will add a file in a directory entry in index.json
      * @throws IOException in case of read/write error and
      *         FileNotFoundException if the file doesn't exist
      */
 
-    public void writeToIndexFile(String pathToRootFolder, ArrayList<String> dataArray) throws IOException, FileNotFoundException {
+    public void writeToIndexFile(File indexFile, String pathToRootFolder, ArrayList<String> dataArray, Integer dirOfFile) throws IOException, FileNotFoundException {
 
         String indexFilePath = pathToRootFolder + "/index.json";
 
@@ -124,16 +125,36 @@ public class FileWorker {
             }
         }
 
-        String strURL = dataArray.get(0);
-        URL siteURL = new URL(strURL);
-        String siteDomainName = siteURL.getHost();
+        String siteDomainName = new String();
 
-        File indexFile = new File(indexFilePath);
+        if(dirOfFile == 1)
+        {
+            String strURL = dataArray.get(0);
+            URL siteURL = new URL(strURL);
+            siteDomainName = siteURL.getHost();
+        }
+        else if(dirOfFile == 0)
+        {
+            String[] path = dataArray.get(0).split("\\\\");
+            for(int i =0; i<path.length; i++)
+            {
+                if(path[i].equals("root"))
+                {
+                    siteDomainName = path[i+1];
+                    break;
+                }
+            }
+        }
+
+        //File indexFile = new File(indexFilePath);
         String strToWrite = new String();
 
         int exists = 0;
+        int existDir = 0;
         Scanner scanner = null;
-        try {
+
+        synchronized (indexFile) {
+
             scanner = new Scanner(indexFile);
 
             //firstly we will verify if the given URL belongs to an site that already exist in index.json file
@@ -141,7 +162,7 @@ public class FileWorker {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 lineNum++;
-                if(line.contains(siteDomainName)) {
+                if (line.contains(siteDomainName)) {
                     exists = 1;
                     break;
                 }
@@ -153,41 +174,83 @@ public class FileWorker {
 
             //if the site already exist we will append the new entry for given URL inside the site entry
             //else we will create a new entry for the site that contain the new entry for the given URL
-            if(exists == 1)
-            {
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    lineNum++;
-                    strToWrite += line;
-                    strToWrite += "\n";
-                    if(line.contains("\"" + siteDomainName + "\"")) {
-                        strToWrite = strToWrite + "\t" + entry + ",\n";
+            if (exists == 1) {
+                if (dirOfFile == 1) {
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        lineNum++;
+                        strToWrite += line;
+                        strToWrite += "\n";
+                        if (line.contains("\"" + siteDomainName + "\"") && line.contains("{")) {
+                            strToWrite = strToWrite + "\t" + entry + ",\n";
+                        }
+                    }
+                    scanner.close();
+                } else {
+                    //if is directory and the entry for the site that belongs this directory exist, then
+                    //we will test if an entry for this directory exists
+
+                    Pattern p = Pattern.compile("\"([^\"]*)\"");
+                    existDir = 0;
+                    lineNum = 0;
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        lineNum++;
+                        Matcher m = p.matcher(line);
+                        if (m.find() && m.group(1).equals(dataArray.get(0))) {
+                            existDir = 1;
+                            break;
+                        }
+                    }
+                    scanner.close();
+
+                    lineNum = 0;
+                    scanner = new Scanner(indexFile);
+                    if (existDir == 0) {
+                        while (scanner.hasNextLine()) {
+                            String line = scanner.nextLine();
+                            lineNum++;
+                            strToWrite += line;
+                            strToWrite += "\n";
+                            if (line.contains("\"" + siteDomainName + "\"") && line.contains("{")) {
+                                strToWrite = strToWrite + "\t" + entry + ",\n";
+                            }
+                        }
+                        scanner.close();
+                    } else {
+                        int index = 0;
+                        for (int i = 0; i < dataArray.size(); i++) {
+                            if (dataArray.get(i).equals("images") && !dataArray.get(i + 1).equals("0")
+                                    || dataArray.get(i).equals("documents") && !dataArray.get(i + 1).equals("0")) {
+                                index = i;
+                                break;
+                            }
+                        }
+                        fileWork = new IndexFileWork();
+                        ((IndexFileWork) fileWork).addFileToDir(indexFilePath, dataArray.get(0), dataArray.get(index + 2), dataArray.get(index));
                     }
                 }
-            }
-            else
-            {
+            } else if (exists == 0) {
+
                 while (scanner.hasNextLine()) {
                     String line = scanner.nextLine();
                     lineNum++;
                     strToWrite += line;
                     strToWrite += "\n";
-                    if(lineNum == 1) {
+                    if (lineNum == 1) {
                         strToWrite = strToWrite + "\t" + "\"" + siteDomainName + "\": {\n";
                         strToWrite = strToWrite + "\t" + entry + "\n";
                         strToWrite = strToWrite + "\t},\n";
                     }
                 }
+                scanner.close();
             }
 
-        } catch(FileNotFoundException e) {
-            throw e;
+            if (existDir == 0) {
+                fileWork = new IndexFileWork();
+                ((IndexFileWork) fileWork).writeSyncronized(indexFile, strToWrite);
+            }
         }
-
-        
-        fileWork = new IndexFileWork();
-        fileWork.write(indexFilePath, strToWrite);
-
     }
 
     /**
@@ -340,7 +403,7 @@ public class FileWorker {
      *         or null in case that index.json file doesn't exist
      */
 
-    public ArrayList<String> filterInIndexFile(String argument, String pathToSiteFolder) {
+    public ArrayList<String> filterInIndexFile(String argument, String pathToSiteFolder) throws FileNotFoundException {
 
         fileWork = new IndexFileWork();
         return fileWork.filter(pathToSiteFolder, argument);
@@ -363,6 +426,13 @@ public class FileWorker {
         fileWork = new IndexFileWork();
         return ((IndexFileWork)fileWork).addKeyWord(indexFilePath,keyWord,filePath);
     }
+
+    public boolean addFileToDirInIndex(String indexFilePath,  String dirPath, String fileName, String fileType)
+    {
+        fileWork = new IndexFileWork();
+        return ((IndexFileWork)fileWork).addFileToDir(indexFilePath,dirPath,fileName,fileType);
+    }
+
     /**
      * Function responsible for reading URLs from the file given.
      * @param path is absolute path where file was saved
@@ -370,7 +440,6 @@ public class FileWorker {
      * @return list of URLs extracted from file
      * @author Stoica Mihai
      */
-
     public ArrayList<String> readFromHTMLFile(String siteURL, String path) throws IOException {
         fileWork = new HTMLFileWork();
         String bothValues = siteURL+"!"+path;
