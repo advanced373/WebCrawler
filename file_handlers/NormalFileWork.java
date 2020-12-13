@@ -1,7 +1,5 @@
 package file_handlers;
 
-import action.pack.CrawlerException;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;

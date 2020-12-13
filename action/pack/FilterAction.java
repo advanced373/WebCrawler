@@ -10,6 +10,7 @@ package action.pack;
 
 import file_handlers.FileWorker;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -26,6 +27,8 @@ public class FilterAction extends InternAction {
     private String resourceType;
     /** the path to root folder */
     private String rootpath;
+    /** */
+    private long maxDimensions;
 
     /**
      * FilterAction constructor
@@ -37,6 +40,21 @@ public class FilterAction extends InternAction {
         super(filePath);
         this.resourceType=resourceType;
         this.rootpath = rootPath;
+        this.maxDimensions=0;
+    }
+
+    /**
+     * FilterAction constructor
+     *
+     * @param filePath absolute path of file
+     * @param resourceType  resource type filter is based on
+     * @param maxDimensions max size of file
+     */
+    public FilterAction(String rootPath, String filePath, String resourceType,long maxDimensions) {
+        super(filePath);
+        this.resourceType=resourceType;
+        this.rootpath = rootPath;
+        this.maxDimensions=maxDimensions;
     }
 
     /**
@@ -71,7 +89,14 @@ public class FilterAction extends InternAction {
                     pathToFile = pathToFile.replace("/", "\\");
                     //pathToFile = rootpath + "\\" + pathToFile;
 
-                    System.out.println(pathToFile+"\n");
+                    if(this.maxDimensions > 0){
+                        File file=new File( pathToFile );
+                        if(file.length()<this.maxDimensions)
+                            System.out.println(pathToFile+"\n");
+                    }
+                    else {
+                        System.out.println( pathToFile + "\n" );
+                    }
 
                 }
             }

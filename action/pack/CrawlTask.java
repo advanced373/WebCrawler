@@ -4,12 +4,15 @@ import file_handlers.CheckFileType;
 import file_handlers.FileWorker;
 
 
+import java.awt.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.Semaphore;
+
+
+import javax.imageio.ImageIO;
 
 /**
  * Implement the class that downloads the page from a URL
@@ -92,6 +95,7 @@ public abstract class CrawlTask implements Runnable{
             }else {
                 this.webCrawler.addCountDownloadedPage();
             }
+            System.out.println(this.urlToCrawl);
 
             Thread.sleep(this.delay);
 
@@ -116,24 +120,17 @@ public abstract class CrawlTask implements Runnable{
      */
 
 
-    private void writePage(String path,InputStream inputStream) throws IOException {
+    private void writePage(String strURL, String path,InputStream inputStream) throws IOException {
 
         String auxPath=path.substring( 0,path.lastIndexOf( "/" ) );
         File file=null;
         if(auxPath!=null){
             File auxFile=new File( auxPath );
             if(auxFile.exists() && !auxFile.isDirectory()){
-                //plus salvare fisier vechi
-                //auxPath=auxPath+"/index.html";
-               // InputStream inputStream1=new FileInputStream( auxFile );
-               // writePage( auxPath,inputStream1 );
-                file = new File(path);
-            }else {
-                file = new File(path);
+                auxFile.delete();
             }
-        }else{
-            file = new File(path);
         }
+        file = new File(path);
 
         if(!file.exists()){
 
@@ -164,6 +161,14 @@ public abstract class CrawlTask implements Runnable{
                 fileWorkerObj.writeToIndexFile(indexFile, rootDir, dataArray, 1);
             }
 
+        }
+    }
+
+    private String getURL(URL url){
+        if(url.getPath().isEmpty()){
+            return url.toString() + "/" + url.getHost();
+        }else {
+            return url.toString().replaceAll("(?<!(http:|https:))//", "/");
         }
     }
 

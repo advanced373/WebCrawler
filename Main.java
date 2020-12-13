@@ -103,7 +103,7 @@ class Main {
         //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
 
         // for(int i=0;i<100;i++) {
-           /* long startTime = System.currentTimeMillis();
+           long startTime = System.currentTimeMillis();
 
             try {
                 IAction action = new Crawl( "", "file.conf", "seed.txt", param );
@@ -113,8 +113,6 @@ class Main {
             }
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - startTime;
-
-
 
 
     }
