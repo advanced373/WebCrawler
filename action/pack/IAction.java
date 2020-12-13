@@ -8,6 +8,15 @@
 
 package action.pack;
 
+import java.io.IOException;
+
+/**
+ * The interface that expose runAction() method.
+ * This method will be overwritten by child actions
+ *
+ * @author Vlijia Stefan
+ */
+
 public interface IAction {
-    public boolean runAction();
+    public boolean runAction() throws IOException;
 }

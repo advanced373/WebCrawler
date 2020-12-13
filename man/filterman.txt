@@ -1,0 +1,23 @@
+NAME
+	Filter
+
+SYNOPSIS
+	WebCrawler Filter FilePath ResourceType [Size]
+
+DESCRIPTION
+	Downloads pages from configuration file (file.config)
+
+	FilePath
+		MANDATORY
+		relative file path of website to do resource type based filtering
+		-must exist in "root_dir" specified in file.conf
+
+	ResourceType
+		MANDATORY
+		type of resource used for filtering
+		-e.g "png"
+
+	Size
+		OPTIONAL
+		limit on size of filter action's result
+	

@@ -375,8 +375,14 @@ public class FileWorker {
         fileWork = new HTMLFileWork();
         String bothValues = siteURL+"!"+path;
         ArrayList<String> URLs=fileWork.read(bothValues);
-        //fileWork.write(path,siteURL);
+       // fileWork.write(path,siteURL);
         fileWork = null;
         return URLs;
+    }
+
+    public ArrayList<String> readFromManFile(String pathToFile) throws IOException {
+        this.fileWork = new NormalFileWork();
+        return fileWork.read(pathToFile);
+
     }
 }

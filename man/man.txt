@@ -1,0 +1,26 @@
+NAME
+	WebCrawler
+
+SYNOPSIS
+	WebCrawler OPTION [ARGS]...
+
+DESCRIPTION
+	Executes intern and extern actions based on crawling activity on the Internet.
+
+	Crawl
+            		download pages from configuration file (file.config)
+
+	Search
+              		do keyword search operation
+
+	Filter
+             		do resource type based filtering of crawling action results
+
+	Sitemap
+              		generate sitemap for a website
+
+	Help
+              		show the manual page
+
+
+       Every option has mandatory or optional arguments which can be shown by typing WebCrawler [OPTION] Help 

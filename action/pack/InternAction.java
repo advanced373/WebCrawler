@@ -8,6 +8,13 @@
 
 package action.pack;
 
+import java.io.IOException;
+
+/**
+ * Abstract class that extends Action abstract class
+ *
+ * @author Vlijia Stefan
+ */
 
 public abstract class InternAction extends Action {
 
@@ -15,5 +22,11 @@ public abstract class InternAction extends Action {
         super(filePath);
     }
 
-    public abstract boolean runAction();
+    /**
+     *Method that will be overrided by an concret
+     * action class.
+     * */
+
+    public abstract boolean runAction() throws IOException;
+
 }

@@ -31,7 +31,7 @@ public class IndexFileWork extends FileWork {
      * Function responsible for reading all data from index.json file.
      *
      * @param fileName is absolute path to file
-     * @return list( type ArrayList ) of data
+     * @return list(type ArrayList) of data
      */
 
     @Override
@@ -57,7 +57,7 @@ public class IndexFileWork extends FileWork {
      * Function responsible for writing data to index.json file
      *
      * @param fileName is absolute path to file
-     * @param data is the data string to be written
+     * @param data     is the data string to be written
      * @throws IOException in case of write errors
      */
 
@@ -75,23 +75,22 @@ public class IndexFileWork extends FileWork {
     /**
      * Function responsible for searching a given keyword in index.json file
      *
-     * @param  pathToSiteFolder is absolute path to folder where the site is downloaded
-     * @param  word is the data string to be searched
+     * @param pathToSiteFolder is absolute path to folder where the site is downloaded
+     * @param word             is the data string to be searched
      * @return an ArrayList that contain the site URLs that contain the given keyword
-     *         or null in case that index.json file doesn't exist
+     * or null in case that index.json file doesn't exist
      * @throws FileNotFoundException if index.json file doesn't exist
      */
 
     @Override
-    protected ArrayList<String> search(String pathToSiteFolder, String word) {
-        try {
+    protected ArrayList<String> search(String pathToSiteFolder, String word) throws FileNotFoundException {
+
             String rootPath = new String();
             String[] path = pathToSiteFolder.split("\\\\");
 
-            for(int i = 0; i<path.length - 1; i++)
-            {
+            for (int i = 0; i < path.length - 1; i++) {
                 rootPath += path[i];
-                rootPath +="\\";
+                rootPath += "\\";
             }
 
             String siteDomainName = path[path.length - 1];
@@ -101,25 +100,21 @@ public class IndexFileWork extends FileWork {
             ArrayList<String> indexContent = read(pathToIndexFile);
             ArrayList<String> retData = new ArrayList<>();
             int currentPoz;
-
             int i;
 
             Pattern p = Pattern.compile("\"([^\"]*)\"");
-            for(i=0; i<indexContent.size(); i++)
-            {
+            for (i = 0; i < indexContent.size(); i++) {
 
                 Matcher m = p.matcher(indexContent.get(i));
-                if(m.find() && m.group(1).equals(word))
-                {
+                if (m.find() && m.group(1).equals(word)) {
                     currentPoz = i;
 
-                    while(!indexContent.get(i).contains("{"))
-                    {
+                    while (!indexContent.get(i).contains("{")) {
                         i--;
                     }
 
                     m = p.matcher(indexContent.get(i));
-                    if(m.find() && m.group(1).contains(siteDomainName)) {
+                    if (m.find() && m.group(1).contains(siteDomainName)) {
                         retData.add(m.group(1));
                     }
 
@@ -129,21 +124,18 @@ public class IndexFileWork extends FileWork {
 
             return retData;
 
-        } catch (FileNotFoundException e) {
-            return null;
-        }
     }
 
     /**
      * Function responsible for filtering the index.json file
      * by an filtering criteria
      *
-     * @param  pathToSiteFolder is absolute path to the folder where
-     *                          the site is downloaded
-     * @param  filter is an file extension on the basis of which the
-     *                filtering is done
+     * @param pathToSiteFolder is absolute path to the folder where
+     *                         the site is downloaded
+     * @param filter           is an file extension on the basis of which the
+     *                         filtering is done
      * @return an ArrayList that contain the site URLs that contain the given filter
-     *         or null in case that index.json file doesn't exist
+     * or null in case that index.json file doesn't exist
      * @throws FileNotFoundException if index.json file doesn't exist
      */
 
@@ -154,10 +146,9 @@ public class IndexFileWork extends FileWork {
             String rootPath = new String();
             String[] path = pathToSiteFolder.split("\\\\");
 
-            for(int i = 0; i<path.length - 1; i++)
-            {
+            for (int i = 0; i < path.length - 1; i++) {
                 rootPath += path[i];
-                rootPath +="\\";
+                rootPath += "\\";
             }
 
             String siteDomainName = path[path.length - 1];
@@ -170,23 +161,28 @@ public class IndexFileWork extends FileWork {
             int i;
 
             Pattern p = Pattern.compile("\"([^\"]*)\"");
-            for(i=0; i<indexContent.size(); i++)
-            {
-                if(indexContent.get(i).contains(filter)
-                        && !indexContent.get(i).contains("{"))
-                {
+            for (i = 0; i < indexContent.size(); i++) {
+                if (indexContent.get(i).contains(filter)
+                        && !indexContent.get(i).contains("{")) {
+
                     currentPoz = i;
 
-                    while(!indexContent.get(i).contains("{"))
-                    {
+                    while (!indexContent.get(i).contains("{")) {
                         i--;
+                    }
+                    System.out.println(siteDomainName);
+                    Matcher m = p.matcher(indexContent.get(i));
+                    if (m.find() && m.group(1).contains(siteDomainName)) {
+                        Matcher m2 = p.matcher(indexContent.get(currentPoz));
+                        m2.find();
+                        retData.add(m.group(1) + "/" + m2.group(1));
                     }
 
                     Matcher m = p.matcher(indexContent.get(i));
-                    if(m.find() && m.group(1).contains(siteDomainName)) {
+                    if (m.find() && m.group(1).contains(siteDomainName)) {
                         Matcher m2 = p.matcher(indexContent.get(currentPoz));
                         m2.find();
-                        retData.add(m.group(1)+"/"+ m2.group(1));
+                        retData.add(m.group(1) + "/" + m2.group(1));
                     }
 
                     i = currentPoz;
@@ -204,15 +200,14 @@ public class IndexFileWork extends FileWork {
      * Function responsible to add a new keyword to an existing entry in
      * index.json file
      *
-     * @param  indexFilePath is absolute path to the index.json file
-     * @param  keyWord is the word to be added
-     * @param  filePath is the pat to the file without the path to the root folder
+     * @param indexFilePath is absolute path to the index.json file
+     * @param keyWord       is the word to be added
+     * @param filePath      is the pat to the file without the path to the root folder
      * @return an ArrayList that contain the site URLs that contain the given filter
-     *         or null in case that index.json file doesn't exist
+     * or null in case that index.json file doesn't exist
      */
 
-    protected boolean addKeyWord(String indexFilePath, String keyWord, String filePath)
-    {
+    protected boolean addKeyWord(String indexFilePath, String keyWord, String filePath) {
         String strToWrite = new String();
 
         try {
@@ -228,9 +223,8 @@ public class IndexFileWork extends FileWork {
                 lineNum++;
                 strToWrite += line;
                 strToWrite += "\n";
-                if(line.contains(filePath)) {
-                    while(!line.contains("keyword") && !line.contains("["))
-                    {
+                if (line.contains(filePath)) {
+                    while (!line.contains("keyword") && !line.contains("[")) {
                         line = scanner.nextLine();
                         lineNum++;
                         strToWrite += line;
@@ -243,7 +237,7 @@ public class IndexFileWork extends FileWork {
 
             this.write(indexFilePath, strToWrite);
 
-        } catch(FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
             return false;
         } catch (MalformedURLException e) {
