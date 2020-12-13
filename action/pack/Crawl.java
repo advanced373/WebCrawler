@@ -31,6 +31,8 @@ public class Crawl extends ExternAction{
     private Integer numThreads;
     /** root directory where save downloaded pages */
     private String rootDir;
+
+    private File indexfile;
     /** After each downloaded page it will wait a period depending on the value of this parameter */
     private Integer delay;
     /** It's a level */
@@ -112,10 +114,13 @@ public class Crawl extends ExternAction{
 
     public boolean  execute() {
 
+        this.indexfile = new File(rootDir+"\\index.json");
+
         this.threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool( this.numThreads );
 
         while (this.countPagesDownload<this.depth){
             try {
+
                 String currentURL=null;
                 if(!this.linksQueue.isEmpty())
                     currentURL=this.linksQueue.take();
@@ -133,6 +138,7 @@ public class Crawl extends ExternAction{
                     if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
                         this.cyclicBarrier.await();
                     }
+
                 }
                if(this.linksQueue.isEmpty()&&this.threadPoolExecutor.getActiveCount()<1)
                    break;
