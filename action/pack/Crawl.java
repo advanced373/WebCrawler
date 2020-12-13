@@ -3,6 +3,7 @@ package action.pack;
 
 import file_handlers.FileWorker;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,6 +31,8 @@ public class Crawl extends ExternAction{
     private Integer numThreads;
     /** root directory where save downloaded pages */
     private String rootDir;
+
+    private File indexfile;
     /** After each downloaded page it will wait a period depending on the value of this parameter */
     private Integer delay;
     /** It's a level */
@@ -42,7 +45,7 @@ public class Crawl extends ExternAction{
     private Integer flagExtension=0;
     /** used to check if the page from a url has already been downloaded*/
     private final Set<String> visitedLinks=new HashSet<>();
-    /** */
+    /** counts the number of pages downloaded */
     private Integer countPagesDownload;
 
 
@@ -111,30 +114,34 @@ public class Crawl extends ExternAction{
 
     public boolean  execute() {
 
+        this.indexfile = new File(rootDir+"\\index.json");
+
         this.threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool( this.numThreads );
 
-        while (!this.linksQueue.isEmpty() && this.countPagesDownload<this.depth){
+        while (this.countPagesDownload<this.depth){
             try {
 
-                String currentURL=linksQueue.take();
+                String currentURL=null;
+                if(!this.linksQueue.isEmpty())
+                    currentURL=this.linksQueue.take();
 
-                if(!this.checkURL(currentURL,this.flagExtension)) {
-                    if(this.linksQueue.isEmpty()  && this.threadPoolExecutor.getActiveCount()>0){
+                if(this.isValidUrl( currentURL )) {
+                    if (!this.checkURL( currentURL, this.flagExtension )) {
+                        if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() > 0) {
+                            this.cyclicBarrier.await();
+                        }
+                        continue;
+                    }
+                    this.visitedLinks.add( currentURL );
+                    CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots );
+                    this.threadPoolExecutor.submit( crawlTask );
+                    if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
                         this.cyclicBarrier.await();
                     }
-                    continue;
+
                 }
-                this.visitedLinks.add(currentURL);
-                this.addCountDownloadedPage();
-
-
-                CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots );
-                this.threadPoolExecutor.submit( crawlTask );
-
-                if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
-                    this.cyclicBarrier.await();
-                }
-                System.out.println(this.countPagesDownload);
+               if(this.linksQueue.isEmpty()&&this.threadPoolExecutor.getActiveCount()<1)
+                   break;
 
             }catch (InterruptedException  exception){
                 exception.printStackTrace();
@@ -143,14 +150,13 @@ public class Crawl extends ExternAction{
             }
         }
 
-
-        System.out.println("Barrier: "+this.cyclicBarrier.getNumberWaiting());
-        System.out.println("Count final "+this.countPagesDownload);
-        System.out.println("Task count "+this.threadPoolExecutor.getTaskCount());
         this.threadPoolExecutor.shutdown();
 
         try {
-            return this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            boolean retValue =this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            if(this.flagExtension==1)
+                this.deleteFolder( this.rootDir );
+            return retValue;
         }catch (InterruptedException interruptedException) {
             interruptedException.printStackTrace();
         }
@@ -267,9 +273,9 @@ public class Crawl extends ExternAction{
         return m.matches();
     }
 
-    public Integer getActiveCount() {
-        return this.threadPoolExecutor.getActiveCount();
-    }
+    /**
+     * increments number of downloaded pages
+     */
 
     public void addCountDownloadedPage(){
         synchronized (this) {
@@ -277,13 +283,33 @@ public class Crawl extends ExternAction{
         }
     }
 
-    private int checkURLConnection(String urlValue) throws IOException {
-        URL url=new URL(urlValue);
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        connection.setConnectTimeout( 2000 );
-        int code=connection.getResponseCode();
-        connection.disconnect();
-        return code;
+    /**
+     * deletes the empty folder when only certain file types are downloaded
+     * @param dir the root path where the downloaded pages are stored
+     * @return size of folder (if value is 0 folder is empty else folder isn't empty)
+     */
+
+    private  long deleteFolder(String dir) {
+
+        File f = new File(dir);
+        String listFiles[] = f.list();
+        long totalSize = 0;
+        for (String file : listFiles) {
+
+            File folder = new File(dir + "/" + file);
+            if (folder.isDirectory()) {
+                totalSize += deleteFolder(folder.getAbsolutePath());
+            } else {
+                totalSize += folder.length();
+            }
+        }
+
+        if (totalSize ==0) {
+            System.out.println(f.getAbsolutePath());
+            f.delete();
+        }
+
+        return totalSize;
     }
 
 }

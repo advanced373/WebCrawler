@@ -39,6 +39,10 @@ public class HTMLFileWork extends FileWork{
         String fileName = parts[1];
         String siteURL  = parts[0];
         File inFile = new File(fileName);
+        if(inFile.isDirectory()){
+            return null;
+        }
+
         Pattern pattern;
         Matcher matcher;
         FileWriter valuesForWrite = new FileWriter(this.fileName,true);

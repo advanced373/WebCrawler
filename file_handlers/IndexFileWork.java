@@ -37,24 +37,21 @@ public class IndexFileWork extends FileWork {
     @Override
     protected ArrayList<String> read(String fileName) throws FileNotFoundException {
         ArrayList<String> lines = new ArrayList<>();
-        try {
-            File myObj = new File(fileName);
-            Scanner myReader = new Scanner(myObj);
-            while (myReader.hasNextLine()) {
-                String data = myReader.nextLine();
-                lines.add(data);
-            }
-            //System.out.println("Successfully read from file " + fileName );
-            myReader.close();
-        } catch (FileNotFoundException e) {
-            throw e;
+        File myObj = new File(fileName);
+        Scanner myReader = new Scanner(myObj);
+
+        while (myReader.hasNextLine()) {
+            String data = myReader.nextLine();
+            lines.add(data);
         }
+        myReader.close();
 
         return lines;
     }
 
     /**
-     * Function responsible for writing data to index.json file
+     * Function responsible for writing data
+     * to index.json file
      *
      * @param fileName is absolute path to file
      * @param data is the data string to be written
@@ -63,13 +60,25 @@ public class IndexFileWork extends FileWork {
 
     @Override
     protected void write(String fileName, String data) throws IOException {
-        try {
-            FileWriter myWriter = new FileWriter(fileName);
-            myWriter.write(data);
-            myWriter.close();
-        } catch (IOException e) {
-            throw e;
-        }
+        File indexFile = new File(fileName);
+        FileWriter myWriter = new FileWriter(indexFile);
+        myWriter.write(data);
+        myWriter.close();
+    }
+
+    /**
+     * Function responsible for writing data syncronized
+     * to index.json file
+     *
+     * @param indexFile is the File object for the indexFile
+     * @param data is the data string to be written
+     * @throws IOException in case of write errors
+     */
+
+    protected void writeSyncronized(File indexFile, String data) throws IOException {
+        FileWriter myWriter = new FileWriter(indexFile);
+        myWriter.write(data);
+        myWriter.close();
     }
 
     /**
@@ -83,55 +92,46 @@ public class IndexFileWork extends FileWork {
      */
 
     @Override
-    protected ArrayList<String> search(String pathToSiteFolder, String word) {
-        try {
-            String rootPath = new String();
-            String[] path = pathToSiteFolder.split("\\\\");
+    protected ArrayList<String> search(String pathToSiteFolder, String word) throws FileNotFoundException {
 
-            for(int i = 0; i<path.length - 1; i++)
-            {
-                rootPath += path[i];
-                rootPath +="\\";
-            }
+        String rootPath = new String();
+        String[] path = pathToSiteFolder.split("\\\\");
 
-            String siteDomainName = path[path.length - 1];
-            String pathToIndexFile = rootPath + "index.json";
-
-
-            ArrayList<String> indexContent = read(pathToIndexFile);
-            ArrayList<String> retData = new ArrayList<>();
-            int currentPoz;
-
-            int i;
-
-            Pattern p = Pattern.compile("\"([^\"]*)\"");
-            for(i=0; i<indexContent.size(); i++)
-            {
-
-                Matcher m = p.matcher(indexContent.get(i));
-                if(m.find() && m.group(1).equals(word))
-                {
-                    currentPoz = i;
-
-                    while(!indexContent.get(i).contains("{"))
-                    {
-                        i--;
-                    }
-
-                    m = p.matcher(indexContent.get(i));
-                    if(m.find() && m.group(1).contains(siteDomainName)) {
-                        retData.add(m.group(1));
-                    }
-
-                    i = currentPoz;
-                }
-            }
-
-            return retData;
-
-        } catch (FileNotFoundException e) {
-            return null;
+        for(int i = 0; i<path.length - 1; i++)
+        {
+            rootPath += path[i];
+            rootPath +="\\";
         }
+
+        String siteDomainName = path[path.length - 1];
+        String pathToIndexFile = rootPath + "index.json";
+
+        ArrayList<String> indexContent = read(pathToIndexFile);
+        ArrayList<String> retData = new ArrayList<>();
+        int currentPoz;
+        int i;
+
+        Pattern p = Pattern.compile("\"([^\"]*)\"");
+        for(i=0; i<indexContent.size(); i++)
+        {
+            Matcher m = p.matcher(indexContent.get(i));
+            if(m.find() && m.group(1).equals(word))
+            {
+                currentPoz = i;
+
+                while(!indexContent.get(i).contains("{"))
+                {
+                    i--;
+                }
+
+                m = p.matcher(indexContent.get(i));
+                if(m.find() && m.group(1).contains(siteDomainName)) {
+                        retData.add(m.group(1));
+                }
+                i = currentPoz;
+            }
+        }
+        return retData;
     }
 
     /**
@@ -143,61 +143,56 @@ public class IndexFileWork extends FileWork {
      * @param  filter is an file extension on the basis of which the
      *                filtering is done
      * @return an ArrayList that contain the site URLs that contain the given filter
-     *         or null in case that index.json file doesn't exist
+     *         or null in case that index.json file doesn't exist. 0 for dir 1 for file.
      * @throws FileNotFoundException if index.json file doesn't exist
      */
 
     @Override
-    protected ArrayList<String> filter(String pathToSiteFolder, String filter) {
-        try {
+    protected ArrayList<String> filter(String pathToSiteFolder, String filter) throws FileNotFoundException {
 
-            String rootPath = new String();
-            String[] path = pathToSiteFolder.split("\\\\");
+        String rootPath = new String();
+        String[] path = pathToSiteFolder.split("\\\\");
 
-            for(int i = 0; i<path.length - 1; i++)
-            {
-                rootPath += path[i];
-                rootPath +="\\";
-            }
-
-            String siteDomainName = path[path.length - 1];
-            String pathToIndexFile = rootPath + "index.json";
-
-            ArrayList<String> indexContent = read(pathToIndexFile);
-            ArrayList<String> retData = new ArrayList<>();
-            int currentPoz;
-
-            int i;
-
-            Pattern p = Pattern.compile("\"([^\"]*)\"");
-            for(i=0; i<indexContent.size(); i++)
-            {
-                if(indexContent.get(i).contains(filter)
-                        && !indexContent.get(i).contains("{"))
-                {
-                    currentPoz = i;
-
-                    while(!indexContent.get(i).contains("{"))
-                    {
-                        i--;
-                    }
-
-                    Matcher m = p.matcher(indexContent.get(i));
-                    if(m.find() && m.group(1).contains(siteDomainName)) {
-                        Matcher m2 = p.matcher(indexContent.get(currentPoz));
-                        m2.find();
-                        retData.add(m.group(1)+"/"+ m2.group(1));
-                    }
-
-                    i = currentPoz;
-                }
-            }
-
-            return retData;
-
-        } catch (FileNotFoundException e) {
-            return null;
+        for(int i = 0; i<path.length - 1; i++)
+        {
+            rootPath += path[i];
+            rootPath +="\\";
         }
+
+        String siteDomainName = path[path.length - 1];
+        String pathToIndexFile = rootPath + "index.json";
+
+        ArrayList<String> indexContent = read(pathToIndexFile);
+        ArrayList<String> retData = new ArrayList<>();
+        int currentPoz;
+
+        int i;
+
+        Pattern p = Pattern.compile("\"([^\"]*)\"");
+        for(i=0; i<indexContent.size(); i++)
+        {
+            if(indexContent.get(i).contains(filter)
+                    && !indexContent.get(i).contains("{"))
+            {
+                currentPoz = i;
+
+                while(!indexContent.get(i).contains("{"))
+                {
+                    i--;
+                }
+
+                Matcher m = p.matcher(indexContent.get(i));
+                if(m.find() && m.group(1).contains(siteDomainName)) {
+                    Matcher m2 = p.matcher(indexContent.get(currentPoz));
+                    m2.find();
+                    retData.add(m.group(1)+"/"+ m2.group(1));
+                }
+
+                i = currentPoz;
+            }
+        }
+
+        return retData;
     }
 
     /**
@@ -237,20 +232,92 @@ public class IndexFileWork extends FileWork {
                         strToWrite += "\n";
                     }
                     strToWrite += "\t\t\t\t";
-                    strToWrite = strToWrite + "\"" + keyWord + "\",\n";
+                    strToWrite = strToWrite + "\"" + keyWord;
+                    line = scanner.nextLine();
+                    lineNum++;
+                    if(line.contains("]"))
+                    {
+                        strToWrite += "\"\n";
+                    }
+                    else
+                    {
+                        strToWrite += "\",\n";
+                    }
+                    strToWrite += line;
+                    strToWrite += "\n";
                 }
             }
 
             this.write(indexFilePath, strToWrite);
 
         } catch(FileNotFoundException e) {
-            e.printStackTrace();
             return false;
         } catch (MalformedURLException e) {
-            e.printStackTrace();
             return false;
         } catch (IOException e) {
-            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Function responsible to add a new keyword to an existing entry in
+     * index.json file
+     *
+     * @param  indexFilePath is absolute path to the index.json file
+     * @param  dirPath is the word to be added
+     * @param  fileName is the pat to the file without the path to the root folder
+     * @param fileType is the type of file (images or documents)
+     * @return true if the adding operation was successful or
+     *         false if the operation failed
+     */
+
+    protected boolean addFileToDir(String indexFilePath,  String dirPath, String fileName, String fileType)
+    {
+        String strToWrite = new String();
+
+        try {
+
+            File indexFile = new File(indexFilePath);
+
+            int lineNum = 0;
+
+            Scanner scanner = new Scanner(indexFile);
+
+            Pattern p = Pattern.compile("\"([^\"]*)\"");
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                lineNum++;
+                strToWrite += line;
+                strToWrite += "\n";
+
+                Matcher m = p.matcher(line);
+                if(m.find()  && m.group(1).equals(dirPath)) {
+                    while(true)
+                    {
+                        if(line.contains(fileType) && line.contains("["))
+                        {
+                            break;
+                        }
+                        line = scanner.nextLine();
+                        lineNum++;
+                        strToWrite += line;
+                        strToWrite += "\n";
+                    }
+                    strToWrite += "\t\t\t\t";
+                    strToWrite = strToWrite + "\"" + fileName + "\",\n";
+                }
+            }
+
+            this.write(indexFilePath, strToWrite);
+
+        } catch(FileNotFoundException e) {
+            return false;
+        } catch (MalformedURLException e) {
+            return false;
+        } catch (IOException e) {
             return false;
         }
 
