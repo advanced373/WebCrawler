@@ -1,5 +1,6 @@
 package action.pack;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
@@ -24,8 +25,11 @@ public class URLNormalization {
         //System.out.println( url + " " + resource + "\n" );
         //finalUrl = Util.normalize( url );
 
+
         if (resource.startsWith( "/" )) {
-            URL newUrl = new URL( url );
+            URL newUrl = new URL( finalUrl );
+            //System.out.println("Url: "+finalUrl);
+           // System.out.println("Resource :"+resource);
             finalUrl = newUrl.getProtocol() + "://" + newUrl.getHost() + "/" + resource;
         }
 
@@ -40,6 +44,21 @@ public class URLNormalization {
 
         if(resource.endsWith( "/" ))
             resource = resource.substring( 0, resource.length() - 1 );
+
+        fragmentIndex = finalUrl.indexOf( "#" );
+        if (fragmentIndex > -1)
+            finalUrl = finalUrl.substring( 0, fragmentIndex );
+
+        fragmentIndex = finalUrl.indexOf( "?" );
+        if (fragmentIndex > -1)
+            finalUrl = finalUrl.substring( 0, fragmentIndex );
+
+        if(resource.endsWith( "/" ))
+            resource = resource.substring( 0, resource.length() - 1 );
+
+        if (finalUrl.endsWith( "/" )) {
+            finalUrl = finalUrl.substring( 0, finalUrl.length() - 1 );
+        }
 
         int check = 0;
         while (resource.startsWith( "../" )) {
@@ -63,16 +82,25 @@ public class URLNormalization {
             }
             finalUrl = finalUrl.substring( 0, finalUrl.lastIndexOf( "/" ) ) + resource.substring( 2 );
         }
-        if (finalUrl.endsWith( "/" )) {
-            finalUrl = finalUrl.substring( 0, finalUrl.length() - 1 );
+
+
+        if (resource.startsWith( "http://" )||resource.startsWith( "https://" ))
+            return Util.trimUrl(resource);
+
+        if(resource.startsWith( "//" )){
+            String newResource=resource.substring( 2 );
+            String domain;
+            if(newResource.contains( "/" ))
+                domain=newResource.substring( 0,newResource.indexOf( "/" ) );
+            else
+                domain=newResource;
+            if(Util.isValidDomain(domain)){
+                return Util.trimUrl( "https://"+resource.substring( 2 ));
+            }
+
         }
 
-        if (resource.startsWith( "http://" ))
-            return resource;
-        if (resource.startsWith( "https://" ))
-            return resource;
-
-        return finalUrl;
+        return Util.trimUrl(finalUrl);
     }
 
     private static boolean checkForDomain(String s) {
@@ -80,6 +108,8 @@ public class URLNormalization {
             return !s.startsWith("http");
         return false;
     }
+
+
 
     /**
      * Function implementing normalization of URLs

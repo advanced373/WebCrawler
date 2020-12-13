@@ -1,5 +1,6 @@
 package file_handlers;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +47,11 @@ public class CheckFileType {
         return null;
     }
     private static String getFileHeader(String filePath) throws IOException {
+
+        File file=new File( filePath );
+        if(file.isDirectory())
+            return null;
+
         byte[] b = new byte[28];
         InputStream inputStream = null;
         byte[] filteredB;

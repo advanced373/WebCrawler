@@ -28,6 +28,10 @@ public class HTMLFileWork extends FileWork{
         String fileName = parts[1];
         String siteURL  = parts[0];
         File inFile = new File(fileName);
+        if(inFile.isDirectory()){
+            return null;
+        }
+
         Pattern pattern;
         Matcher matcher;
         pattern=Pattern.compile("([^\\s]+(\\.(?i)(html|php))$)");
@@ -66,7 +70,6 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
-                URLs.add(helperNormalization);
                 URLs.add(helperNormalization);
                 i++;
             }

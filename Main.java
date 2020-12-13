@@ -30,6 +30,7 @@ class Main {
     }
 
 
+
     public static void main(String[] args)
     {
 
@@ -52,9 +53,9 @@ class Main {
 
         ArrayList<String> param=new ArrayList<>();
         param.add("no");
-        
 
-       // for(int i=0;i<100;i++) {
+
+
             long startTime = System.currentTimeMillis();
             try {
                 IAction action = new Crawl( "", "file.conf", "seed.txt", param );
@@ -66,7 +67,6 @@ class Main {
             long totalTime = endTime - startTime;
 
             System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );
-        //}
 
 
     }

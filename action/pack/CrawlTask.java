@@ -3,10 +3,8 @@ package action.pack;
 import file_handlers.CheckFileType;
 import file_handlers.FileWorker;
 
-
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
@@ -59,8 +57,8 @@ public abstract class CrawlTask implements Runnable{
             this.urlToCrawl=URLNormalization.URLProcessing( this.urlToCrawl ,"");
             URL url=new URL(this.urlToCrawl);
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-            connection.setConnectTimeout( 2000 );
             if(connection.getResponseCode()<200 || 226 < connection.getResponseCode()) {
+                System.out.println(connection.getResponseMessage());
                 return;
             }
 
@@ -68,16 +66,17 @@ public abstract class CrawlTask implements Runnable{
             String path=this.getPath( url );
             this.writePage(path,inputStream);
             inputStream.close();
+            connection.disconnect();
 
+
+            //System.out.println(this.urlToCrawl);
             FileWorker fileWorker = new FileWorker();
             ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
             this.addUrlLinkedQueue( URLs );
 
             CheckFileType checkFileType = new CheckFileType();
             if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1 &&
-                (checkFileType.getType(path) == CheckFileType.FileType.HTML
-                    || checkFileType.getType(path) == CheckFileType.FileType.DOC_HTML
-                    || checkFileType.getType(path) == CheckFileType.FileType.PHP)){
+                    (checkFileType.getType(path) !=null || this.webCrawler.linksQueue.isEmpty())) {
                 this.webCrawler.cyclicBarrier.await();
             }
 
@@ -85,15 +84,17 @@ public abstract class CrawlTask implements Runnable{
                 File file=new File( path );
                 if (!file.delete()) {
                 }
+            }else {
+                this.webCrawler.addCountDownloadedPage();
             }
-            connection.disconnect();
+
             Thread.sleep(this.delay);
 
 
         }catch (IOException  exception){
-            throw new RuntimeException("Error connecting to URL",exception);
+            exception.printStackTrace();
         }catch (InterruptedException exception){
-            throw new RuntimeException("Error runtime",exception);
+            exception.printStackTrace();
         } catch (BrokenBarrierException e) {
             e.printStackTrace();
         }
@@ -107,7 +108,23 @@ public abstract class CrawlTask implements Runnable{
      */
 
     private void writePage(String path,InputStream inputStream) throws IOException {
-        File file = new File(path);
+
+        String auxPath=path.substring( 0,path.lastIndexOf( "/" ) );
+        File file=null;
+        if(auxPath!=null){
+            File auxFile=new File( auxPath );
+            if(auxFile.exists() && !auxFile.isDirectory()){
+                //plus salvare fisier vechi
+                //auxPath=auxPath+"/index.html";
+               // InputStream inputStream1=new FileInputStream( auxFile );
+               // writePage( auxPath,inputStream1 );
+                file = new File(path);
+            }else {
+                file = new File(path);
+            }
+        }else{
+            file = new File(path);
+        }
         if(!file.exists()){
 
             file.getParentFile().mkdirs();
@@ -120,7 +137,6 @@ public abstract class CrawlTask implements Runnable{
                 outputStream.write(bytes,0,read);
             }
             outputStream.close();
-
         }
     }
 
@@ -136,11 +152,19 @@ public abstract class CrawlTask implements Runnable{
             this.webCrawler.linksQueue.add( url );
     }
 
+    /**
+     * based on a url and the root directory returns an absolute path
+     * @param url url of the page that was downloaded and based on which the absolute path is created
+     * @return absolute path
+     */
     private String getPath(URL url){
+
         if(url.getPath().isEmpty()){
-            return rootDir + '/' + url.getHost() + '/'+url.getHost();
+            return Util.trimUrl( rootDir + '/' + url.getHost() + '/'+url.getHost());
         }else {
-            return rootDir + '/' + url.getHost() +'/' +url.getPath();
+            return Util.trimUrl( rootDir + '/' + url.getHost() +'/' +url.getPath());
         }
     }
+
+
 }
