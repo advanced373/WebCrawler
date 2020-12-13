@@ -14,9 +14,25 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+ * This class has a management roll. It interprets the
+ * parameters given as input in command line and based
+ * on this parameters it start the right action. The
+ * class catch all the errors thrown from program
+ *
+ * @author Vlijia Stefan
+ */
+
 
 public class Logger {
     private IAction actionObj;
+
+    /**
+     * Function that test if a given path is valid/exists
+     *
+     * @param path the path to be tested
+     * @return true if is valid or false if not
+     */
 
     private static boolean isValidPath(String path)
     {
@@ -30,9 +46,18 @@ public class Logger {
         return true;
     }
 
+    /**
+     * Function that create and start a new action
+     *
+     * @param option specify the type of action
+     * @param atributes is an string array that contain
+     *                  the arguments given in command line
+     */
+
     public void newAction(String option, String[] atributes) throws CrawlerException, FileNotFoundException {
-        if (option.equals("-help")) {
-            //crate a help action
+    {
+        if(option.equals("-help"))
+        {
             this.actionObj = new HelpAction();
         }
         if (option.equals("Crawl")) {

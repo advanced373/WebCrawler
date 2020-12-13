@@ -1,5 +1,8 @@
 package action.pack;
 
+import java.io.File;
+import java.util.concurrent.Semaphore;
+
 /**
  * This class is responsible for creating the task depending on whether or not the robots.txt file needs to be checked
  * @author Rosca Stefan
@@ -16,10 +19,10 @@ public class TaskFactory {
      * @param flagRobots  used to know what kind of object to create
      * @return a CrawlTask object
      */
-    public static CrawlTask createTask(String urlToCrawl, Crawl webCrawler, Integer delay,String rootDir,Integer flagRobots){
+    public static CrawlTask createTask(String urlToCrawl, Crawl webCrawler, Integer delay, String rootDir, Integer flagRobots, File indexFile){
         if(flagRobots==1)
-            return new CrawlTaskRobots( urlToCrawl,webCrawler,delay,rootDir );
+            return new CrawlTaskRobots( urlToCrawl,webCrawler,delay,rootDir, indexFile);
         else
-            return new CrawlTaskNormal( urlToCrawl,webCrawler,delay,rootDir );
+            return new CrawlTaskNormal( urlToCrawl,webCrawler,delay,rootDir, indexFile);
     }
 }

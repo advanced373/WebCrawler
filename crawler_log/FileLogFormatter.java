@@ -1,5 +1,5 @@
 /*
- * LogManager
+ * FileLogFormatter
  *
  * Version 1.0
  *
@@ -13,12 +13,16 @@ import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
 /**
- * Class for logging crawler's action in a log file
+ * Class for formatting records from file logger
  *
- * @author CorinaTanase
+ * @author Stoica Mihai
  */
 public class FileLogFormatter extends Formatter {
-
+    /**
+     * Method that change default format for Logger.
+     * @param record entry in the file
+     * @return
+     */
     @Override
     public String format(LogRecord record) {
         return record.getThreadID()+"::"+record.getSourceClassName()+"::"
