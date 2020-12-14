@@ -9,6 +9,7 @@
 package action.pack;
 
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * The interface that expose runAction() method.
@@ -18,5 +19,5 @@ import java.io.IOException;
  */
 
 public interface IAction {
-    public boolean runAction() throws IOException;
+    public boolean runAction() throws IOException, BrokenBarrierException, InterruptedException;
 }

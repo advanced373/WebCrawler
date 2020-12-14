@@ -35,8 +35,10 @@ public class SearchAction extends InternAction {
      * keyword used for search action
      */
     private String keyWord;
-    /** the path to root folder */
-    private String rootpath;
+    /**
+     * the path to root folder
+     */
+    private final String rootPath;
 
     /**
      * SearchAction constructor
@@ -46,10 +48,10 @@ public class SearchAction extends InternAction {
      * @param rootPath path to root folder
      */
 
-    public SearchAction(String rootPath, String filePath, String keyWord)  {
+    public SearchAction(String rootPath, String filePath, String keyWord) {
         super(filePath);
         this.keyWord = keyWord;
-        this.rootpath = rootPath;
+        this.rootPath = rootPath;
     }
 
     /**
@@ -59,8 +61,7 @@ public class SearchAction extends InternAction {
      * @return an list of type ArrayList
      */
 
-    private <T> ArrayList<T>  getArrayListFromStream(Stream<T> stream)
-    {
+    private <T> ArrayList<T> getArrayListFromStream(Stream<T> stream) {
 
         // Convert the Stream to List
         List<T>
@@ -83,83 +84,64 @@ public class SearchAction extends InternAction {
      * file of the site. When the keyword is found, it is added in index.json file
      *
      * @return true if search action have success or
-     *         false if search action fail
+     * false if search action fail
      */
 
     @Override
-    public boolean runAction() {
+    public boolean runAction() throws IOException {
 
         FileWorker fileWorkerObj = new FileWorker();
         ArrayList<String> listOfURLs = new ArrayList<String>();
 
-        try{
-            listOfURLs = fileWorkerObj.searchInIndexFile(keyWord, filePath);
+        listOfURLs = fileWorkerObj.searchInIndexFile(keyWord, filePath);
 
-            if(listOfURLs.isEmpty())
-            {
-                System.out.println("The keyword doesn't exist in index.json file!\n");
-            }
-            else
-            {
-                for(int i = 0; i<listOfURLs.size(); i++)
-                {
-                    String pathToFile  = listOfURLs.get(i).toString();
-                    pathToFile = pathToFile.replaceFirst("(http://|https://)", "");
-                    pathToFile = pathToFile.replace("/", "\\");
-                    pathToFile = rootpath + "\\" + pathToFile;
-                    ArrayList<String> lines = fileWorkerObj.SearchInNormalFile(pathToFile,keyWord);
+        if (listOfURLs.isEmpty()) {
+            System.out.println("The keyword doesn't exist in index.json file!\n");
+        } else {
+            for (int i = 0; i < listOfURLs.size(); i++) {
+                String pathToFile = listOfURLs.get(i).toString();
+                pathToFile = pathToFile.replaceFirst("(http://|https://)", "");
+                pathToFile = pathToFile.replace("/", "\\");
+                pathToFile = rootPath + "\\" + pathToFile;
+                ArrayList<String> lines = fileWorkerObj.SearchInNormalFile(pathToFile, keyWord);
 
-                    System.out.println("File: "+pathToFile);
-                    if(!lines.isEmpty())
-                    {
-                        System.out.println(keyWord + " apper on lines: "+ lines.toString()+"\n");
+                System.out.println("File: " + pathToFile);
+                if (!lines.isEmpty()) {
+                    System.out.println(keyWord + " apper on lines: " + lines.toString() + "\n");
 
-                    }
-                }
-
-                return true;
-            }
-
-            //if searched word doesn't exist in index.json file then we
-            //search the word in every regular file from site and
-            //the word will be added in index.json file
-            Stream<Path> pathArray = Files.walk(Paths.get(filePath))
-                    .filter(Files::isRegularFile);
-            ArrayList<Path> pathList = new ArrayList<>(getArrayListFromStream(pathArray));
-
-            for(Path path: pathList)
-            {
-                ArrayList<String> lines = fileWorkerObj.SearchInNormalFile(path.toString(),keyWord);
-                System.out.println("File: "+path.toString());
-                if(!lines.isEmpty())
-                {
-                    System.out.println(keyWord + " apper on lines: "+ lines.toString());
-
-                    //making an path to search in index file
-                    //this path doesn't contain the root folder
-                    String filePathToSeargh  = new String();
-                    filePathToSeargh = path.toString().replace(rootpath+"\\", "");
-                    filePathToSeargh = filePathToSeargh.replace('\\', '/');
-
-                    if(fileWorkerObj.addKeywordToIndexFile(rootpath+"\\index.json", keyWord, filePathToSeargh))
-                    {
-                        System.out.println("The new keyword was added to index.json file!\n");
-                    }
-                    else
-                    {
-                        System.out.println("Failed to add new keyword in index.json file!\n");
-                    }
-                }
-                else
-                {
-                    System.out.println(keyWord + " doesn't appear in this file!\n");
                 }
             }
 
+            return true;
+        }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+        //if searched word doesn't exist in index.json file then we
+        //search the word in every regular file from site and
+        //the word will be added in index.json file
+        Stream<Path> pathArray = Files.walk(Paths.get(filePath))
+                .filter(Files::isRegularFile);
+        ArrayList<Path> pathList = new ArrayList<>(getArrayListFromStream(pathArray));
+
+        for (Path path : pathList) {
+            ArrayList<String> lines = fileWorkerObj.SearchInNormalFile(path.toString(), keyWord);
+            System.out.println("File: " + path.toString());
+            if (!lines.isEmpty()) {
+                System.out.println(keyWord + " apper on lines: " + lines.toString());
+
+                //making an path to search in index file
+                //this path doesn't contain the root folder
+                String filePathToSearch = new String();
+                filePathToSearch = path.toString().replace(rootPath + "\\", "");
+                filePathToSearch = filePathToSearch.replace('\\', '/');
+
+                if (fileWorkerObj.addKeywordToIndexFile(rootPath + "\\index.json", keyWord, filePathToSearch)) {
+                    System.out.println("The new keyword was added to index.json file!\n");
+                } else {
+                    System.out.println("Failed to add new keyword in index.json file!\n");
+                }
+            } else {
+                System.out.println(keyWord + " doesn't appear in this file!\n");
+            }
         }
 
         return true;

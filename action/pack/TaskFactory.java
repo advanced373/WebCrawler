@@ -1,3 +1,11 @@
+/*
+ * TaskFactory
+ *
+ * Version 1.0
+ *
+ * All rights reserved.
+ */
+
 package action.pack;
 
 import java.io.File;

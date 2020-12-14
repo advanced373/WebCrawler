@@ -2,6 +2,7 @@ package action.pack;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.Semaphore;
 
 public class CrawlTaskNormal extends CrawlTask{
@@ -18,11 +19,11 @@ public class CrawlTaskNormal extends CrawlTask{
     }
 
     @Override
-    public void run() {
+    public void run() throws RuntimeException{
         try {
             this.crawl();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | BrokenBarrierException  | InterruptedException e) {
+            throw new RuntimeException("Crawl Action Exception", e.getCause());
         }
     }
 }
