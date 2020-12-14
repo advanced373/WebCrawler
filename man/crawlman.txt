@@ -1,0 +1,21 @@
+NAME
+	Crawl
+
+SYNOPSIS
+	WebCrawler Crawl [ARGS]...
+
+DESCRIPTION
+	Downloads websites from seed file (seed.txt)
+
+	yes
+		OPTIONAL 
+		do check and download accoriding to robots.txt file of websites
+
+	help
+		OPTIONAL 
+		display this manual page
+
+	no args 
+		DEFAULT
+		ignore robots.txt file of websites
+	

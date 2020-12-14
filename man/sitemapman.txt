@@ -1,0 +1,16 @@
+NAME
+	Sitemap
+
+SYNOPSIS
+	WebCrawler Sitemap FilePath
+
+DESCRIPTION
+	Generates website sitemap
+
+	FilePath
+		MANDATORY
+		absolute file path of website 
+     
+       The sitemap will be generated in "D:\Sitemaps" directory.
+
+	
