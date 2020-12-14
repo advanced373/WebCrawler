@@ -49,9 +49,10 @@ public class Util {
         try {
             Integer.parseInt(str);
             return true;
-        } catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             return false;
         }
+    }
 
     public static boolean isValidDomain(String str)
     {
