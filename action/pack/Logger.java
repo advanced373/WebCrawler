@@ -46,15 +46,15 @@ public class Logger {
     }
 
     /**
-<<<<<<< HEAD
+     <<<<<<< HEAD
      * Function that creates and starts a new action
      *
      * @param option    specify the type of action
-=======
+    =======
      * Function that create and start a new action
      *
      * @param option specify the type of action
->>>>>>> f5d346fb23e488943ee301b6fac71ff7ea8a259a
+    >>>>>>> f5d346fb23e488943ee301b6fac71ff7ea8a259a
      * @param atributes is an string array that contain
      *                  the arguments given in command line
      */

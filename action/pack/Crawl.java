@@ -2,12 +2,11 @@ package action.pack;
 
 
 import file_handlers.FileWorker;
+import action.pack.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +14,8 @@ import java.util.Set;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+
 
 /**
  * This class implements the download process starting from a file with URLs
@@ -133,7 +134,7 @@ public class Crawl extends ExternAction{
                         continue;
                     }
                     this.visitedLinks.add( currentURL );
-                    CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots );
+                    CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots,this.indexfile );
                     this.threadPoolExecutor.submit( crawlTask );
                     if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
                         this.cyclicBarrier.await();
@@ -236,9 +237,7 @@ public class Crawl extends ExternAction{
 
     private boolean checkURL(String url,Integer flagExtension){
 
-        if(this.visitedLinks.contains(url))
-            return false;
-        return true;
+        return !this.visitedLinks.contains( url );
     }
 
     public List<String> getUrlsToCrawl() {
