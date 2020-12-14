@@ -34,7 +34,7 @@ class Main {
         }
     }
 
-
+    
     public static void main(String[] args) {
         try {
             if (args.length < 1) {
@@ -51,10 +51,12 @@ class Main {
                 throw new CrawlerException("103", "Unssucceseful action");
                 //de adaugat log
             }
-        } catch (CrawlerException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+        } catch (CrawlerException | IOException e) {
+            /*System.out.println("An error occurred.");
+            e.printStackTrace();*/
+            System.out.println(e.getMessage());
             //de adaugat log
+
         }
 //        ArrayList<String> param = new ArrayList<>();
 //        param.add("no");
@@ -86,7 +88,8 @@ class Main {
         //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
 
         // for(int i=0;i<100;i++) {
-           /* long startTime = System.currentTimeMillis();
+      /*     long startTime = System.currentTimeMillis();
+
             try {
                 IAction action = new Crawl( "", "file.conf", "seed.txt", param );
                 action.runAction();
@@ -94,10 +97,7 @@ class Main {
                 e.printStackTrace();
             }
             long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
-
-            System.out.println( "URL's crawled : " + " in " + totalTime + " i: " );*/
-        //}
+            long totalTime = endTime - startTime;*/
 
 
 

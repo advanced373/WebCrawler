@@ -126,7 +126,7 @@ public class IndexFileWork extends FileWork {
 
                 m = p.matcher(indexContent.get(i));
                 if(m.find() && m.group(1).contains(siteDomainName)) {
-                        retData.add(m.group(1));
+                    retData.add(m.group(1));
                 }
                 i = currentPoz;
             }
