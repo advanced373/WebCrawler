@@ -108,6 +108,6 @@ public class FilterAction extends InternAction {
             return false;
         }
 
-        return false;
+        return true;
     }
 }
