@@ -68,7 +68,7 @@ public class LogManager {
             consoleLogger = Logger.getLogger("CrawlerConsoleLog");
             //java.util.logging.LogManager.getLogManager().readConfiguration(new FileInputStream("src/mylogging.properties"));
             Handler consoleHandler = new ConsoleHandler();
-            FileLogFormatter consoleLogFormatter = new FileLogFormatter();
+            ConsoleLogFormatter consoleLogFormatter = new ConsoleLogFormatter();
             consoleHandler.setFormatter(consoleLogFormatter);
             consoleHandler.setLevel(Level.ALL);
             consoleLogger.setLevel(Level.ALL);
