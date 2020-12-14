@@ -51,9 +51,10 @@ class Main {
                 throw new CrawlerException("103", "Unssucceseful action");
                 //de adaugat log
             }
-        } catch (CrawlerException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+        } catch (CrawlerException | IOException e) {
+            /*System.out.println("An error occurred.");
+            e.printStackTrace();*/
+            System.out.println(e.getMessage());
             //de adaugat log
         }
 

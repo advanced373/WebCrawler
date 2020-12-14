@@ -1,0 +1,17 @@
+NAME
+	Search
+
+SYNOPSIS
+	WebCrawler Search FilePath KeyWord
+
+DESCRIPTION
+	Keyword based search operation 
+
+	FilePath
+		MANDATORY
+		relative file path of website to do resource type based filtering
+		-must exist in "root_dir" specified in file.conf
+
+	KeyWord
+		MANDATORY
+		word used for search
