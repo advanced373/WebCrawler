@@ -39,6 +39,10 @@ public class HTMLFileWork extends FileWork{
         String fileName = parts[1];
         String siteURL  = parts[0];
         File inFile = new File(fileName);
+        if(inFile.isDirectory()){
+            return null;
+        }
+
         Pattern pattern;
         Matcher matcher;
         FileWriter valuesForWrite = new FileWriter(this.fileName,true);
@@ -98,7 +102,22 @@ public class HTMLFileWork extends FileWork{
     @Override
     protected void write(String fileName, String data) throws IOException {
         URL myURL = new URL(data);
-        if(myURL.getPath() != null) {
+        String siteUrlHelper = data;
+        int index = siteUrlHelper.indexOf("://");
+        if (index != -1) {
+            // keep everything after the "://"
+            siteUrlHelper = siteUrlHelper.substring(index + 3);
+        }
+        index = siteUrlHelper.indexOf('/');
+
+        if (index != -1) {
+            // keep everything before the '/'
+            siteUrlHelper = siteUrlHelper.substring(index);
+        }
+        if(index == siteUrlHelper.length())
+            index = -1;
+        if(myURL.getPath() != null && index != -1) {
+            System.out.println(myURL.getPath()+"\n");
             String parts[];
             String filesForHelp[];
             String pathToSite = "";
