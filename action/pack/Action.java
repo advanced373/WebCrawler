@@ -9,6 +9,7 @@
 package action.pack;
 
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * Abstract class that implements IAction interface
@@ -36,5 +37,5 @@ public abstract class Action implements IAction {
      * */
 
     @Override
-    public abstract boolean runAction() throws IOException;
+    public abstract boolean runAction() throws IOException, BrokenBarrierException, InterruptedException;
 }

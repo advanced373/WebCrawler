@@ -16,82 +16,109 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
 /**
  * This class implements the download process starting from a file with URLs
+ *
  * @author Rosca Stefan
  */
 
-public class Crawl extends ExternAction{
+public class Crawl extends ExternAction {
 
-    /** seed URLs */
-    private List<String> urlsToCrawl =new ArrayList<>();
-    /** manages the thread pool*/
+    /**
+     * seed URLs
+     */
+    private List<String> urlsToCrawl = new ArrayList<>();
+    /**
+     * manages the thread pool
+     */
     private ThreadPoolExecutor threadPoolExecutor;
-    /** the number of threads in the pool*/
+    /**
+     * the number of threads in the pool
+     */
     private Integer numThreads;
-    /** root directory where save downloaded pages */
+    /**
+     * root directory where save downloaded pages
+     */
     private String rootDir;
 
     private File indexfile;
-    /** After each downloaded page it will wait a period depending on the value of this parameter */
+    /**
+     * After each downloaded page it will wait a period depending on the value of this parameter
+     */
     private Integer delay;
-    /** It's a level */
+    /**
+     * It's a level
+     */
     private Integer logLevel;
-    /** the maximum number of pages that can be downloaded*/
+    /**
+     * the maximum number of pages that can be downloaded
+     */
     private Integer depth;
-    /** used when checking the contents of the file robots.txt (if the value is 1 it must be checked otherwise not) */
-    private Integer flagRobots=0;
-    /** used if certain types of files can be downloaded (if the value is 1 it must be checked otherwise not) */
-    private Integer flagExtension=0;
-    /** used to check if the page from a url has already been downloaded*/
-    private final Set<String> visitedLinks=new HashSet<>();
-    /** counts the number of pages downloaded */
+    /**
+     * used when checking the contents of the file robots.txt (if the value is 1 it must be checked otherwise not)
+     */
+    private Integer flagRobots = 0;
+    /**
+     * used if certain types of files can be downloaded (if the value is 1 it must be checked otherwise not)
+     */
+    private Integer flagExtension = 0;
+    /**
+     * used to check if the page from a url has already been downloaded
+     */
+    private final Set<String> visitedLinks = new HashSet<>();
+    /**
+     * counts the number of pages downloaded
+     */
     private Integer countPagesDownload;
 
 
-
-    /** processing queue */
-    public LinkedBlockingQueue<String> linksQueue=new LinkedBlockingQueue<>();
-    /** used for synchronization when linksQueue is empty and a task is running*/
+    /**
+     * processing queue
+     */
+    public LinkedBlockingQueue<String> linksQueue = new LinkedBlockingQueue<>();
+    /**
+     * used for synchronization when linksQueue is empty and a task is running
+     */
     public CyclicBarrier cyclicBarrier;
-    /** the name of the configuration file */
+    /**
+     * the name of the configuration file
+     */
     public String fileNameConf;
-    /** the name of the file with the seed urls */
+    /**
+     * the name of the file with the seed urls
+     */
     public String fileNameUrlList;
-    /** used to download specific resources depending on the extension*/
-    public final ArrayList<String> extension=new ArrayList<>();
+    /**
+     * used to download specific resources depending on the extension
+     */
+    public final ArrayList<String> extension = new ArrayList<>();
 
 
-    /** CrawlTask constructor
+    /**
+     * CrawlTask constructor
+     *
      * @param filePath
-     * @param fileNameConf the name of the configuration file
+     * @param fileNameConf    the name of the configuration file
      * @param fileNameUrlList the name of the file with the seed urls
-     * @param parameters list of extensions and  flag value flagRobots
-     * @throws FileNotFoundException  when there is a problem opening a file
+     * @param parameters      list of extensions and  flag value flagRobots
+     * @throws FileNotFoundException when there is a problem opening a file
      */
 
-    public Crawl(String filePath,String fileNameConf, String fileNameUrlList,ArrayList<String> parameters) throws FileNotFoundException {
+    public Crawl(String filePath, String fileNameConf, String fileNameUrlList, ArrayList<String> parameters) throws IOException, CrawlerException {
         super(filePath);
         this.fileNameConf = fileNameConf;
         this.fileNameUrlList = fileNameUrlList;
-        this.cyclicBarrier=new CyclicBarrier(2);
-        this.threadPoolExecutor=null;
-        this.countPagesDownload=0;
+        this.cyclicBarrier = new CyclicBarrier(2);
+        this.threadPoolExecutor = null;
+        this.countPagesDownload = 0;
 
-        FileWorker fileWorker= new FileWorker();
+        FileWorker fileWorker = new FileWorker();
         ArrayList<String> confParam;
-        try {
-            this.urlsToCrawl=fileWorker.ReadFromURLsFile(this.fileNameUrlList);
-            confParam=fileWorker.readFromConfigureFile(this.fileNameConf);
-            this.parseParam(confParam);
-        }catch (NumberFormatException  | IOException exception) {
-            exception.printStackTrace();
-        }catch (CrawlerException crawlException){
-            crawlException.print();
-        }
+        this.urlsToCrawl = fileWorker.ReadFromURLsFile(this.fileNameUrlList);
+        confParam = fileWorker.readFromConfigureFile(this.fileNameConf);
+        this.parseParam(confParam);
 
-        if(parameters.get(0).equals("yes"))
+        if (parameters.get(0).equals("yes"))
             setFlagRobots(1);
 
         setExtension(parameters);
@@ -104,7 +131,7 @@ public class Crawl extends ExternAction{
      * This method call execute function
      */
     @Override
-    public boolean runAction() {
+    public boolean runAction() throws BrokenBarrierException, InterruptedException {
         return this.execute();
     }
 
@@ -113,55 +140,43 @@ public class Crawl extends ExternAction{
      * each thread to download one page at a time.
      */
 
-    public boolean  execute() {
+    public boolean execute() throws InterruptedException, BrokenBarrierException {
 
-        this.indexfile = new File(rootDir+"\\index.json");
+        this.indexfile = new File(rootDir + "\\index.json");
 
-        this.threadPoolExecutor =(ThreadPoolExecutor) Executors.newFixedThreadPool( this.numThreads );
+        this.threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(this.numThreads);
 
-        while (this.countPagesDownload<this.depth){
-            try {
+        while (this.countPagesDownload < this.depth) {
+            String currentURL = null;
+            if (!this.linksQueue.isEmpty())
+                currentURL = this.linksQueue.take();
 
-                String currentURL=null;
-                if(!this.linksQueue.isEmpty())
-                    currentURL=this.linksQueue.take();
-
-                if(this.isValidUrl( currentURL )) {
-                    if (!this.checkURL( currentURL, this.flagExtension )) {
-                        if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() > 0) {
-                            this.cyclicBarrier.await();
-                        }
-                        continue;
-                    }
-                    this.visitedLinks.add( currentURL );
-                    CrawlTask crawlTask = TaskFactory.createTask( currentURL, this, this.delay, this.rootDir, this.flagRobots,this.indexfile );
-                    this.threadPoolExecutor.submit( crawlTask );
-                    if(this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount()>0){
+            if (this.isValidUrl(currentURL)) {
+                if (!this.checkURL(currentURL, this.flagExtension)) {
+                    if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() > 0) {
                         this.cyclicBarrier.await();
                     }
-
+                    continue;
                 }
-               if(this.linksQueue.isEmpty()&&this.threadPoolExecutor.getActiveCount()<1)
-                   break;
+                this.visitedLinks.add(currentURL);
+                CrawlTask crawlTask = TaskFactory.createTask(currentURL, this, this.delay, this.rootDir, this.flagRobots, this.indexfile);
+                this.threadPoolExecutor.submit(crawlTask);
+                if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() > 0) {
+                    this.cyclicBarrier.await();
+                }
 
-            }catch (InterruptedException  exception){
-                exception.printStackTrace();
-            } catch (BrokenBarrierException e) {
-                e.printStackTrace();
             }
+            if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() < 1)
+                break;
+
         }
 
         this.threadPoolExecutor.shutdown();
 
-        try {
-            boolean retValue =this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            if(this.flagExtension==1)
-                this.deleteFolder( this.rootDir );
-            return retValue;
-        }catch (InterruptedException interruptedException) {
-            interruptedException.printStackTrace();
-        }
-        return false;
+        boolean retValue = this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        if (this.flagExtension == 1)
+            this.deleteFolder(this.rootDir);
+        return retValue;
     }
 
 
@@ -186,13 +201,13 @@ public class Crawl extends ExternAction{
     }
 
     public void setExtension(ArrayList<String> extension) {
-        if(extension.size()==1){
-            this.flagExtension=0;
+        if (extension.size() == 1) {
+            this.flagExtension = 0;
             return;
         }
-        for(int i=1;i<extension.size();i++)
+        for (int i = 1; i < extension.size(); i++)
             this.extension.add((extension.get(i)));
-        this.flagExtension=1;
+        this.flagExtension = 1;
     }
 
     public void setFlagRobots(Integer flagRobots) {
@@ -201,13 +216,14 @@ public class Crawl extends ExternAction{
 
     /**
      * This method parses the configuration parameters and initializes them
+     *
      * @throws CrawlerException when size of param differ from 5
      */
 
     private void parseParam(ArrayList<String> param) throws CrawlerException {
 
-        if(param.size()!=5){
-            throw new CrawlerException("100","The number of configuration parameters is different from 5.");
+        if (param.size() != 5) {
+            throw new CrawlerException("100", "The number of configuration parameters is different from 5.");
         }
 
         setNumThreads(Integer.parseInt(param.get(0).substring(10)));
@@ -222,22 +238,23 @@ public class Crawl extends ExternAction{
      * This method initializes the processing queue
      */
 
-    private void initProcessQueue(){
-        for (String s: this.urlsToCrawl){
-            if(this.isValidUrl(s))
+    private void initProcessQueue() {
+        for (String s : this.urlsToCrawl) {
+            if (this.isValidUrl(s))
                 linksQueue.add(s);
         }
     }
 
     /**
      * This method check if url already been visited or extension is ok if is case
+     *
      * @param url value of url
      * @return true if the url has not been visited or the extension is allowed else false
      */
 
-    private boolean checkURL(String url,Integer flagExtension){
+    private boolean checkURL(String url, Integer flagExtension) {
 
-        return !this.visitedLinks.contains( url );
+        return !this.visitedLinks.contains(url);
     }
 
     public List<String> getUrlsToCrawl() {
@@ -250,15 +267,16 @@ public class Crawl extends ExternAction{
 
     /**
      * Check that the URL format is valid
+     *
      * @param url contains value of url
      * @return true if url is valid else false
      */
 
-    private boolean isValidUrl(String url){
+    private boolean isValidUrl(String url) {
 
 
         //OWASP url regex
-        String regex =  "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
+        String regex = "^((((https?|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))" +
                 "(%[0-9A-Fa-f]{2}|[-()_.!~*';/?:@&=+$,A-Za-z0-9])+)" +
                 "([).!';/?:,][[:blank:]])?$";
 
@@ -276,7 +294,7 @@ public class Crawl extends ExternAction{
      * increments number of downloaded pages
      */
 
-    public void addCountDownloadedPage(){
+    public void addCountDownloadedPage() {
         synchronized (this) {
             this.countPagesDownload++;
         }
@@ -284,11 +302,12 @@ public class Crawl extends ExternAction{
 
     /**
      * deletes the empty folder when only certain file types are downloaded
+     *
      * @param dir the root path where the downloaded pages are stored
      * @return size of folder (if value is 0 folder is empty else folder isn't empty)
      */
 
-    private  long deleteFolder(String dir) {
+    private long deleteFolder(String dir) {
 
         File f = new File(dir);
         String listFiles[] = f.list();
@@ -303,7 +322,7 @@ public class Crawl extends ExternAction{
             }
         }
 
-        if (totalSize ==0) {
+        if (totalSize == 0) {
             System.out.println(f.getAbsolutePath());
             f.delete();
         }

@@ -8,6 +8,8 @@
 
 package action.pack;
 
+import java.util.concurrent.BrokenBarrierException;
+
 /**
  * Abstract class that extends Action abstract class
  *
@@ -31,5 +33,5 @@ public abstract class ExternAction extends Action {
      * action class.
      * */
 
-    public abstract boolean runAction();
+    public abstract boolean runAction() throws BrokenBarrierException, InterruptedException;
 }

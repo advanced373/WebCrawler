@@ -1,3 +1,11 @@
+/*
+ * Util
+ *
+ * Version 1.0
+ *
+ * All rights reserved.
+ */
+
 package action.pack;
 
 import java.io.UnsupportedEncodingException;
@@ -15,7 +23,12 @@ import java.util.regex.Pattern;
 
 public class Util {
 
-
+    /**
+     * Function for returning file extension based on URL String
+     * @param file String URL
+     * @return file extension if exists, empty String if not
+     * @throws MalformedURLException if String param is not a valid URL
+     */
     private static String getFileExtension(String file) throws MalformedURLException {
         URL url = new URL( file );
         String path = url.getPath();
@@ -24,14 +37,10 @@ public class Util {
         else return "";
     }
 
-    public static boolean checkUrlExtension(ArrayList<String> allExtension, String url) {
+    public static boolean checkUrlExtension(ArrayList<String> allExtension, String url) throws MalformedURLException {
 
         String extension = null;
-        try {
             extension = getFileExtension( url );
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
         if ("".equals( extension )) {
             for (String ext : allExtension) {
                 if (ext.equals( extension ))
@@ -56,7 +65,6 @@ public class Util {
 
     public static boolean isValidDomain(String str)
     {
-
         String regex = "^((?!-)[A-Za-z0-9-]"
                 + "{1,63}(?<!-)\\.)"
                 + "+[A-Za-z]{2,6}";

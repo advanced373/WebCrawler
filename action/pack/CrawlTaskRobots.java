@@ -2,10 +2,12 @@ package action.pack;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.Semaphore;
 
-public class CrawlTaskRobots extends CrawlTask{
+public class CrawlTaskRobots extends CrawlTask {
     /**
      * CrawlTask constructor
      *
@@ -19,17 +21,17 @@ public class CrawlTaskRobots extends CrawlTask{
     }
 
     @Override
-    public void run() {
+    public void run() throws RuntimeException {
         try {
-            URL url=new URL(this.urlToCrawl);
-            if(Robots.robotParser(url))
+            URL url = new URL(this.urlToCrawl);
+            if (Robots.robotParser(url))
                 this.crawl();
             else {
                 System.out.println(this.urlToCrawl);
                 return;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | BrokenBarrierException | InterruptedException e) {
+            throw new RuntimeException("Crawl Action Exception", e.getCause());
         }
     }
 }
