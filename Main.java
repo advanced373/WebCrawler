@@ -57,7 +57,6 @@ class Main {
             //de adaugat log
 
         }
-
 //        ArrayList<String> param = new ArrayList<>();
 //        param.add("no");
 //
@@ -81,9 +80,8 @@ class Main {
         logger.log(Level.FINE,"Helllo!!");
         */
 
-        ArrayList<String> param=new ArrayList<>();
-        param.add("no");
-
+        /*ArrayList<String> param=new ArrayList<>();
+        param.add("no");*/
         
         //IAction c= new SitemapAction("D:\\Download\\dzone.com","sitemap.txt");
         //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
@@ -98,8 +96,7 @@ class Main {
                 e.printStackTrace();
             }
             long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
-*/
+            long totalTime = endTime - startTime;*
 
     }
 }
