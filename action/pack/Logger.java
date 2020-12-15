@@ -14,12 +14,13 @@ import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.concurrent.BrokenBarrierException;
 
 /**
  * This class has a management roll. It interprets the
  * parameters given as input in command line and based
- * on this parameters it start the right action. The
- * class catch all the errors thrown from program
+ * on them it starts the right action. The
+ * class catches all the errors thrown from program
  *
  * @author Vlijia Stefan
  */
@@ -29,10 +30,10 @@ public class Logger {
     private IAction actionObj;
 
     /**
-     * Function that test if a given path is valid/exists
+     * Function testing if a given path is valid/exists
      *
      * @param path the path to be tested
-     * @return true if is valid or false if not
+     * @return true for valid path or false if not
      */
 
     private static boolean isValidPath(String path) {
@@ -46,32 +47,24 @@ public class Logger {
     }
 
     /**
-     <<<<<<< HEAD
-     * Function that creates and starts a new action
-     *
-     * @param option    specify the type of action
-    =======
-     * Function that create and start a new action
-     *
-     * @param option specify the type of action
-    >>>>>>> f5d346fb23e488943ee301b6fac71ff7ea8a259a
-     * @param atributes is an string array that contain
+     * @param option    specifies the type of action
+     * @param attributes is an string array that contains
      *                  the arguments given in command line
      */
 
-    public void newAction(String option, String[] atributes) throws FileNotFoundException, CrawlerException {
+    public void newAction(String option, String[] attributes) throws IOException, CrawlerException {
         if (option.equals("Help")) {
             this.actionObj = new HelpAction("man/man.txt");
         }
         if (option.equals("Crawl")) {
             ArrayList<String> param = new ArrayList<>();
 
-            if (atributes.length > 1) {
-                if (atributes[1].equals("help")) {
+            if (attributes.length > 1) {
+                if (attributes[1].equals("help")) {
                     this.actionObj = new HelpAction("man/crawlman.txt");
                     return;
                 } else {
-                    param.add(atributes[1]);
+                    param.add(attributes[1]);
                 }
             } else {
                 param.add("no");
@@ -79,55 +72,55 @@ public class Logger {
             this.actionObj = new Crawl("", "file.conf", "seed.txt", param);
         }
         if (option.equals("Search")) {
-            if (atributes.length > 1) {
-                if (atributes[1].equals("help")) {
+            if (attributes.length > 1) {
+                if (attributes[1].equals("help")) {
                     this.actionObj = new HelpAction("man/searchman.txt");
                     return;
                 }
-                if (atributes.length == 2)
+                if (attributes.length == 2)
                     throw new CrawlerException("210", "Missing arguments.\nPlease check man page with 'Search help' command");
-                if (atributes.length == 3) {
-                    File f = new File("C:\\root\\" + atributes[1]);
+                if (attributes.length == 3) {
+                    File f = new File("C:\\root\\" + attributes[1]);
                     if (!f.exists()) {
                         throw new CrawlerException("201", "Invalid path.\nPlease enter a valid relative file path or check man page with 'Search help' command");
                     } else {
-                        this.actionObj = new SearchAction("C:\\root", "C:\\root\\" + atributes[1], atributes[2]);
+                        this.actionObj = new SearchAction("C:\\root", "C:\\root\\" + attributes[1], attributes[2]);
                     }
                 }
             }
             throw new CrawlerException("210", "Missing arguments.\nPlease check man page with 'Search help' command");
         }
         if (option.equals("Sitemap")) {
-            if (atributes.length > 1) {
-                if (atributes[1].equals("help")) {
+            if (attributes.length > 1) {
+                if (attributes[1].equals("help")) {
                     this.actionObj = new HelpAction("man/sitemapman.txt");
                     return;
                 }
-                if (!new File(atributes[1]).isAbsolute()) {
+                if (!new File(attributes[1]).isAbsolute()) {
                     throw new CrawlerException("200", "Invalid path.\nPlease enter an absolute path");
                 }
-                this.actionObj = new SitemapAction(atributes[1]);
+                this.actionObj = new SitemapAction(attributes[1]);
             } else {
                 throw new CrawlerException("210", "Missing argument.\nPlease check man page with 'Sitemap help' command");
             }
         }
         if (option.equals("Filter")) {
-            if (atributes.length > 1) {
-                if (atributes[1].equals("help")) {
+            if (attributes.length > 1) {
+                if (attributes[1].equals("help")) {
                     this.actionObj = new HelpAction("man/filterman.txt");
                     return;
                 }
-                if (atributes.length == 2)
+                if (attributes.length == 2)
                     throw new CrawlerException("210", "Missing arguments.\nPlease check man page with 'Filter help' command");
-                if (atributes.length == 3) {
-                    File f = new File("C:\\root\\" + atributes[1]);
+                if (attributes.length == 3) {
+                    File f = new File("C:\\root\\" + attributes[1]);
                     if (!f.exists()) {
                         throw new CrawlerException("201", "Invalid path.\nPlease enter a valid relative file path or check man page with 'Filter help' command");
                     } else {
-                        this.actionObj = new FilterAction("C:\\root", "C:\\root\\" + atributes[1], atributes[2]);
+                        this.actionObj = new FilterAction("C:\\root", "C:\\root\\" + attributes[1], attributes[2]);
                     }
-                } else if (Util.isNumeric(atributes[3])) {
-                    this.actionObj = new FilterAction("C:\\root", "C:\\root\\" + atributes[1], atributes[2], Integer.parseInt(atributes[3]));
+                } else if (Util.isNumeric(attributes[3])) {
+                    this.actionObj = new FilterAction("C:\\root", "C:\\root\\" + attributes[1], attributes[2], Integer.parseInt(attributes[3]));
                 } else
                     throw new CrawlerException("202", "Invalid size.\nPlease enter a valid resource size");
             } else {
@@ -138,7 +131,7 @@ public class Logger {
     }
 
 
-    public boolean runAction() throws IOException {
+    public boolean runAction() throws IOException, BrokenBarrierException, InterruptedException {
         return actionObj.runAction();
     }
 }

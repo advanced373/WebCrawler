@@ -51,16 +51,17 @@ public abstract class CrawlTask implements Runnable{
      * This method call crawl function
      */
 
-    public abstract void run();
+    public abstract void run() throws RuntimeException;
 
     /**
      * This method downloads the page from the URL
      * @throws IOException when there is a connection problem
+     * @throws BrokenBarrierException if the barrier action failed due to an exception
+     * @throws InterruptedException if the current thread was interrupted while waiting
      */
 
-    protected void crawl() throws IOException {
+    protected void crawl() throws IOException, BrokenBarrierException, InterruptedException {
 
-        try{
             this.urlToCrawl=URLNormalization.URLProcessing( this.urlToCrawl ,"");
             URL url=new URL(this.urlToCrawl);
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
@@ -99,14 +100,6 @@ public abstract class CrawlTask implements Runnable{
 
             Thread.sleep(this.delay);
 
-
-        }catch (IOException  exception){
-            exception.printStackTrace();
-        }catch (InterruptedException exception){
-            exception.printStackTrace();
-        } catch (BrokenBarrierException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -118,7 +111,6 @@ public abstract class CrawlTask implements Runnable{
      * @param inputStream page data
      * @throws IOException
      */
-
 
     private void writePage(String strURL, String path,InputStream inputStream) throws IOException {
 

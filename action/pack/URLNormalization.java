@@ -1,3 +1,11 @@
+/*
+ * URLNormalization
+ *
+ * Version 1.0
+ *
+ * All rights reserved.
+ */
+
 package action.pack;
 
 import java.io.IOException;
@@ -6,17 +14,15 @@ import java.net.*;
 import java.util.*;
 
 /**
- * Class offering public URL processing function
+ * Class offering URL processing public function
  *
  * @author CorinaTanase
  */
-
-
 public class URLNormalization {
 
     /**
      * Function implementing user-defined processing of URLs
-     * - Concatenate relative resource to main URL
+     * - Concatenate relative resource to main URL and normalization operations
      */
 
     public static String URLProcessing(String url, String resource) throws MalformedURLException {
@@ -103,13 +109,15 @@ public class URLNormalization {
         return Util.trimUrl(finalUrl);
     }
 
+    /**
+     * Function for validating resource string
+     * @return true if resource contains one of the most common used domains, false if not
+     */
     private static boolean checkForDomain(String s) {
         if (s.toLowerCase().contains(".com") || s.toLowerCase().contains(".ro") || s.toLowerCase().contains(".org") || s.toLowerCase().contains(".net") || s.toLowerCase().contains(".int") || s.toLowerCase().contains(".mil"))
             return !s.startsWith("http");
         return false;
     }
-
-
 
     /**
      * Function implementing normalization of URLs
@@ -117,16 +125,16 @@ public class URLNormalization {
      * - Normalize the path (done by java.net.URI)
      * - Remove the fragment (the part after the #)
      * - Remove some query string params like "utm_*" and "*session*"
-     */
-    private static String normalize(final String taintedURL) throws MalformedURLException {
+     * @param taintedURL String representing URL
+     * @return normalized URL
+     * @throws MalformedURLException if error occurred while constructing the URL
+     * @throws UnsupportedEncodingException If some encoding is not supported
+     * @throws URISyntaxException If the given string violates RFC2396
+   */
+    private static String normalize(final String taintedURL) throws MalformedURLException, UnsupportedEncodingException, URISyntaxException {
 
         final URL url;
-        try {
-            url = new URI(taintedURL).normalize().toURL();
-            //System.out.println("url acum " + url + "\n");
-        } catch (URISyntaxException e) {
-            throw new MalformedURLException(e.getMessage());
-        }
+        url = new URI(taintedURL).normalize().toURL();
 
         final String path = url.getPath().replace("/$", "");
         //System.out.println("path acum " + path + "\n");
@@ -153,7 +161,11 @@ public class URLNormalization {
                 + path + queryString;
     }
 
-
+    /**
+     * Static function for generating parameter map of URL
+     * @param queryString URL String
+     * @return SortedMap with pairs of parameter and value
+     */
     private static SortedMap<String, String> createParameterMap(final String queryString) {
         if (queryString == null || queryString.isEmpty()) {
             return null;
@@ -194,7 +206,13 @@ public class URLNormalization {
         return new TreeMap<String, String>( params );
     }
 
-    private static String canonicalize(final SortedMap<String, String> sortedParamMap) {
+    /**
+     * Static function for encoding URL parameters map
+     * @param sortedParamMap initial parameters map
+     * @return encoded String based on parameters map
+     * @throws UnsupportedEncodingException If some encoding is not supported
+     */
+    private static String canonicalize(final SortedMap<String, String> sortedParamMap) throws UnsupportedEncodingException {
         if (sortedParamMap == null || sortedParamMap.isEmpty()) {
             return "";
         }
@@ -215,11 +233,14 @@ public class URLNormalization {
         return sb.toString();
     }
 
-    private static String percentEncodeRfc3986(final String string) {
-        try {
-            return URLEncoder.encode(string, "UTF-8").replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
-        } catch (UnsupportedEncodingException e) {
-            return string;
-        }
+    /**
+     * Static function for encoding URL String
+     * @param string initial URL String
+     * @return RFC3986 Encoded string
+     * @throws UnsupportedEncodingException If some encoding is not supported
+     */
+    private static String percentEncodeRfc3986(final String string) throws UnsupportedEncodingException {
+        return URLEncoder.encode(string, "UTF-8").replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
+
     }
 }

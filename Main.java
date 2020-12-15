@@ -34,21 +34,6 @@ class Main {
         }
     }
 
-
-
-
-    public static void main(String[] args)
-    {
-
-        /*//de adaugat try - catch dupa ce sunt facute clasele de tratare a exceptiilor
-        if(args.length < 1)
-        {
-            //nr gresit de parametrii
-        }
-        if(!contains(Options.class, args[0]))
-        {
-            //optiune inexistenta.
-
     public static void main(String[] args) {
         try {
             if (args.length < 1) {
@@ -104,7 +89,7 @@ class Main {
         //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
 
         // for(int i=0;i<100;i++) {
-           long startTime = System.currentTimeMillis();
+           /*long startTime = System.currentTimeMillis();
 
             try {
                 IAction action = new Crawl( "", "file.conf", "seed.txt", param );
@@ -114,7 +99,7 @@ class Main {
             }
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - startTime;
-
+*/
 
     }
 }

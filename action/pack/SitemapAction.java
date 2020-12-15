@@ -32,66 +32,52 @@ public class SitemapAction extends InternAction {
     /**
      * SitemapAction constructor
      *
-     * @param filePath    absolute path of website's file
+     * @param filePath absolute path of website's file
      */
     public SitemapAction(String filePath) {
         super(filePath);
-        this.currentFile= new File(filePath);
-        this.sitemapFile= "D:\\Sitemaps\\"+currentFile.getName()+".txt";
+        this.currentFile = new File(filePath);
+        this.sitemapFile = "D:\\Sitemaps\\" + currentFile.getName() + ".txt";
     }
 
     /**
-     * This method implements sitemap making action. Firstly is verified the
-     * index.json file.
-     * If keyword is found, then it is printed the file path and the
-     * lines in the file where the keyword appear.
-     * If keyword isn't found, then the keyword it is searched in each
-     * file of the site. When the keyword is found, it is added in index.json file
+     * This method implements sitemap making action.
      *
      * @return true if the action was successful
-     *         false if the action failed
+     * false if the action failed
      */
     @Override
-    public boolean runAction() {
-        try {
-            File siteMap= new File(this.sitemapFile);
-            if (siteMap.createNewFile()) {
-                //System.out.println("File created: " + myObj.getName());
-            } else {
-               // System.out.println("File already exists.");
-            }
-            FileWriter myWriter = new FileWriter(siteMap);
-            myWriter.write(currentFile.getName()+"\n");
-            generateSitemap(currentFile,myWriter);
-            myWriter.close();
-            //de apelat logger
-            return true;
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-            return false;
+    public boolean runAction() throws IOException {
+        File siteMap = new File(this.sitemapFile);
+        if (siteMap.createNewFile()) {
+            //System.out.println("File created: " + myObj.getName());
+        } else {
+            // System.out.println("File already exists.");
         }
+        FileWriter myWriter = new FileWriter(siteMap);
+        myWriter.write(currentFile.getName() + "\n");
+        generateSitemap(currentFile, myWriter);
+        myWriter.close();
+        //de apelat logger
+        return true;
     }
 
     /**
      * Method for recursively list files from a directory
      *
-     * @param dir file to generate sitemap for
+     * @param dir           file to generate sitemap for
      * @param sitemapWriter FileWriter object for writing in the sitemap file
      */
-    public static void generateSitemap(File dir, FileWriter sitemapWriter) {
-        try {
-            File[] files = dir.listFiles();
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    sitemapWriter.write("\t"+file.getName()+ "/\n");
-                    generateSitemap(file,sitemapWriter);
-                } else {
-                    sitemapWriter.write("\t\t" + file.getName() +"\n");
-                }
+    public static void generateSitemap(File dir, FileWriter sitemapWriter) throws IOException {
+
+        File[] files = dir.listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                sitemapWriter.write("\t" + file.getName() + "/\n");
+                generateSitemap(file, sitemapWriter);
+            } else {
+                sitemapWriter.write("\t\t" + file.getName() + "\n");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
