@@ -55,7 +55,7 @@ public class LogManager {
         if (type == LoggerType.FileLogger && fileLogger == null) {
             fileLogger = Logger.getLogger("CrawlerFileLog");
             fileLogger.setUseParentHandlers(false);
-            Handler fileHandler = new FileHandler("logger.log", 2000, 1,true);
+            Handler fileHandler = new FileHandler("logger.log", 20000, 1,true);
             FileLogFormatter fileLogFormatter = new FileLogFormatter();
             fileHandler.setFormatter(fileLogFormatter);
             fileHandler.setLevel(Level.ALL);

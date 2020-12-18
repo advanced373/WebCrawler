@@ -16,6 +16,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +28,12 @@ import java.util.regex.Pattern;
  * @author Stoica Mihai
  */
 public class HTMLFileWork extends FileWork{
+    private final ReentrantReadWriteLock lockHelpFile = new ReentrantReadWriteLock();
+    private final Lock readLockHelpFile = lockHelpFile.readLock();
+    private  final Lock writeLockHelpFile = lockHelpFile.writeLock();
+    private final ReentrantReadWriteLock lockFile = new ReentrantReadWriteLock();
+    private final Lock readLockFile = lockFile.readLock();
+    private  final Lock writeLockFile = lockFile.writeLock();
     /**
      * Function responsible for reading URLs from file, using REGEX.
      *
@@ -34,6 +43,7 @@ public class HTMLFileWork extends FileWork{
     private final String fileName="help.txt";
     @Override
     protected  ArrayList<String> read(String bothValues) throws IOException {
+
         String parts[];
         parts = bothValues.split("!");
         String fileName = parts[1];
@@ -42,9 +52,9 @@ public class HTMLFileWork extends FileWork{
         if(inFile.isDirectory()){
             return null;
         }
-
         Pattern pattern;
         Matcher matcher;
+        readLockFile.lock();
         FileWriter valuesForWrite = new FileWriter(this.fileName,true);
         pattern=Pattern.compile("([^\\s]+(\\.(?i)(html|php))$)");
         matcher = pattern.matcher(fileName);
@@ -52,6 +62,7 @@ public class HTMLFileWork extends FileWork{
             CheckFileType checkFileType = new CheckFileType();
             if(checkFileType.getType(fileName) == null)
             {
+                readLockFile.unlock();
                 return null;
             }
         }
@@ -73,7 +84,9 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("href=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
+                writeLockHelpFile.lock();
                 valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
+                writeLockHelpFile.unlock();
                 URLs.add(helperNormalization);
                 i++;
             }
@@ -83,13 +96,16 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
+                writeLockHelpFile.lock();
                 valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
+                writeLockHelpFile.unlock();
                 URLs.add(helperNormalization);
                 i++;
             }
         }
         valuesForWrite.close();
         myReader.close();
+        readLockFile.unlock();
         return URLs;
     }
     /**
@@ -109,7 +125,6 @@ public class HTMLFileWork extends FileWork{
             siteUrlHelper = siteUrlHelper.substring(index + 3);
         }
         index = siteUrlHelper.indexOf('/');
-
         if (index != -1) {
             // keep everything before the '/'
             siteUrlHelper = siteUrlHelper.substring(index);
@@ -117,7 +132,7 @@ public class HTMLFileWork extends FileWork{
         if(index == siteUrlHelper.length())
             index = -1;
         if(myURL.getPath() != null && index != -1) {
-            System.out.println(myURL.getPath()+"\n");
+
             String parts[];
             String filesForHelp[];
             String pathToSite = "";
@@ -126,6 +141,7 @@ public class HTMLFileWork extends FileWork{
             String nameOfMyFile = parts[parts.length-1];
             String newFileContent = "";
             String oldValue="";
+            readLockHelpFile.lock();
             File inFile = new File(this.fileName);
             Scanner myReaderValues = new Scanner(inFile);
             while (myReaderValues.hasNextLine()) {
@@ -136,7 +152,9 @@ public class HTMLFileWork extends FileWork{
                     oldValue = filesForHelp[2];
                 }
             }
+            readLockHelpFile.unlock();
             if (pathToSite != "") {
+                readLockFile.lock();
                 File f = new File(pathToSite);
                 Matcher matcher;
                 Pattern pattern;
@@ -150,21 +168,23 @@ public class HTMLFileWork extends FileWork{
                         if(matcher.group(0).equals("href=\""+oldValue+"\""))
                         {
                             row = row.replace(matcher.group(0), "href=\"" + fileNameCopy + "\"");
-                            System.out.println("Aici e ok!\n");
-                            synchronized (this)
-                            {
-                                LogManager.getLogger(LoggerType.FileLogger).log(Level.INFO,row + "was replaced!\n");
-                            }
+                            LogManager.getLogger(LoggerType.FileLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+"\n");
+                            LogManager.getLogger(LoggerType.ConsoleLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+"\n");
                         }
                     }
                     newFileContent = newFileContent + row + System.lineSeparator();
                 }
+                readLockFile.unlock();
                 myReader.close();
+                writeLockFile.lock();
                 FileWriter writer = new FileWriter(pathToSite);
                 writer.write(newFileContent);
                 writer.close();
+                writeLockFile.unlock();
             }
+
         }
+
     }
     /**
      * Has no purpose in this class, is used only for override

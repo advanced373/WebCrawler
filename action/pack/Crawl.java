@@ -323,7 +323,6 @@ public class Crawl extends ExternAction {
         }
 
         if (totalSize == 0) {
-            System.out.println(f.getAbsolutePath());
             f.delete();
         }
 

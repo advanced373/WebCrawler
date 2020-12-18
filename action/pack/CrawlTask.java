@@ -1,5 +1,7 @@
 package action.pack;
 
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
 import file_handlers.CheckFileType;
 import file_handlers.FileWorker;
 
@@ -10,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.logging.Level;
 
 
 import javax.imageio.ImageIO;
@@ -66,7 +69,6 @@ public abstract class CrawlTask implements Runnable{
             URL url=new URL(this.urlToCrawl);
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
             if(connection.getResponseCode()<200 || 226 < connection.getResponseCode()) {
-                System.out.println(connection.getResponseMessage());
                 return;
             }
 
@@ -96,7 +98,6 @@ public abstract class CrawlTask implements Runnable{
             }else {
                 this.webCrawler.addCountDownloadedPage();
             }
-            System.out.println(this.urlToCrawl);
 
             Thread.sleep(this.delay);
 
@@ -239,11 +240,16 @@ public abstract class CrawlTask implements Runnable{
      * @param URLs URLs extracted from the downloaded page
      */
 
-    private void addUrlLinkedQueue(ArrayList<String> URLs)  {
+    private void addUrlLinkedQueue(ArrayList<String> URLs) throws IOException {
         if (URLs==null)
             return;
         for (String url:URLs)
+        {
             this.webCrawler.linksQueue.add( url );
+            LogManager.getLogger(LoggerType.FileLogger).log(Level.INFO,url);
+            LogManager.getLogger(LoggerType.ConsoleLogger).log(Level.INFO,url);
+        }
+
     }
 
     /**

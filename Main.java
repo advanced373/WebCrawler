@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.concurrent.BrokenBarrierException;
 
 class Main {
     static enum Options {
@@ -50,7 +51,7 @@ class Main {
                 throw new CrawlerException("103", "Unssucceseful action");
                 //de adaugat log
             }
-        } catch (CrawlerException | IOException e) {
+        } catch (CrawlerException | IOException | BrokenBarrierException | InterruptedException e) {
             /*System.out.println("An error occurred.");
             e.printStackTrace();*/
             System.out.println(e.getMessage());
@@ -82,7 +83,7 @@ class Main {
 
         /*ArrayList<String> param=new ArrayList<>();
         param.add("no");*/
-        
+
         //IAction c= new SitemapAction("D:\\Download\\dzone.com","sitemap.txt");
         //SitemapAction.displayDirectoryContents(new File("D:\\Download\\dzone.com"));
 
@@ -96,7 +97,7 @@ class Main {
                 e.printStackTrace();
             }
             long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;*
+            long totalTime = endTime - startTime;*/
 
     }
 }
