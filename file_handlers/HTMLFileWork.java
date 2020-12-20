@@ -16,6 +16,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +28,12 @@ import java.util.regex.Pattern;
  * @author Stoica Mihai
  */
 public class HTMLFileWork extends FileWork{
+    private final ReentrantReadWriteLock lockHelpFile = new ReentrantReadWriteLock();
+    private final Lock readLockHelpFile = lockHelpFile.readLock();
+    private  final Lock writeLockHelpFile = lockHelpFile.writeLock();
+    private final ReentrantReadWriteLock lockFile = new ReentrantReadWriteLock();
+    private final Lock readLockFile = lockFile.readLock();
+    private  final Lock writeLockFile = lockFile.writeLock();
     /**
      * Function responsible for reading URLs from file, using REGEX.
      *
@@ -32,6 +41,12 @@ public class HTMLFileWork extends FileWork{
      * @return list of URLs
      */
     private final String fileName="help.txt";
+    public HTMLFileWork() throws FileNotFoundException {
+        File file = new File(fileName);
+        PrintWriter writer = new PrintWriter(file);
+        writer.print("");
+        writer.close();
+    }
     @Override
     protected  ArrayList<String> read(String bothValues) throws IOException {
         String parts[];
@@ -42,16 +57,17 @@ public class HTMLFileWork extends FileWork{
         if(inFile.isDirectory()){
             return null;
         }
-
         Pattern pattern;
         Matcher matcher;
-        FileWriter valuesForWrite = new FileWriter(this.fileName,true);
+        String stringWriteToHelp="";
+        readLockFile.lock();
         pattern=Pattern.compile("([^\\s]+(\\.(?i)(html|php))$)");
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
             CheckFileType checkFileType = new CheckFileType();
             if(checkFileType.getType(fileName) == null)
             {
+                readLockFile.unlock();
                 return null;
             }
         }
@@ -73,7 +89,7 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("href=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
-                valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
+                stringWriteToHelp+=(fileName + " " +helperNormalization+" "+dataToSend+"\n");
                 URLs.add(helperNormalization);
                 i++;
             }
@@ -83,13 +99,19 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
-                valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
+                stringWriteToHelp+=(fileName + " " +helperNormalization+" "+dataToSend+"\n");
                 URLs.add(helperNormalization);
                 i++;
             }
         }
-        valuesForWrite.close();
         myReader.close();
+        readLockFile.unlock();
+        writeLockHelpFile.lock();
+        FileWriter valuesForWrite = new FileWriter(this.fileName,true);
+        valuesForWrite.write(stringWriteToHelp);
+        valuesForWrite.close();
+        writeLockHelpFile.unlock();
+
         return URLs;
     }
     /**
@@ -105,19 +127,16 @@ public class HTMLFileWork extends FileWork{
         String siteUrlHelper = data;
         int index = siteUrlHelper.indexOf("://");
         if (index != -1) {
-            // keep everything after the "://"
             siteUrlHelper = siteUrlHelper.substring(index + 3);
         }
         index = siteUrlHelper.indexOf('/');
-
         if (index != -1) {
-            // keep everything before the '/'
             siteUrlHelper = siteUrlHelper.substring(index);
         }
         if(index == siteUrlHelper.length())
             index = -1;
         if(myURL.getPath() != null && index != -1) {
-            System.out.println(myURL.getPath()+"\n");
+
             String parts[];
             String filesForHelp[];
             String pathToSite = "";
@@ -126,22 +145,26 @@ public class HTMLFileWork extends FileWork{
             String nameOfMyFile = parts[parts.length-1];
             String newFileContent = "";
             String oldValue="";
+            readLockHelpFile.lock();
             File inFile = new File(this.fileName);
             Scanner myReaderValues = new Scanner(inFile);
             while (myReaderValues.hasNextLine()) {
                 String row = myReaderValues.nextLine();
+                row = row.replaceAll("\n"," ");
                 filesForHelp = row.split(" ");
                 if (data.equals(filesForHelp[1]) == true) {
                     pathToSite = filesForHelp[0];
                     oldValue = filesForHelp[2];
+                    break;
                 }
             }
+            readLockHelpFile.unlock();
             if (pathToSite != "") {
+                readLockFile.lock();
                 File f = new File(pathToSite);
                 Matcher matcher;
                 Pattern pattern;
                 Scanner myReader = new Scanner(f);
-                System.out.println(oldValue+"\n");
                 while (myReader.hasNextLine()) {
                     String row = myReader.nextLine();
                     pattern = Pattern.compile("href=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"|href=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"|src=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"|src=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"");
@@ -150,21 +173,29 @@ public class HTMLFileWork extends FileWork{
                         if(matcher.group(0).equals("href=\""+oldValue+"\""))
                         {
                             row = row.replace(matcher.group(0), "href=\"" + fileNameCopy + "\"");
-                            System.out.println("Aici e ok!\n");
-                            synchronized (this)
-                            {
-                                LogManager.getLogger(LoggerType.FileLogger).log(Level.INFO,row + "was replaced!\n");
-                            }
+                            LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+" in file "+pathToSite);
+                            LogManager.getMyLogger(LoggerType.ConsoleLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+" in file "+pathToSite);
+                        }
+                        if(matcher.group(0).equals("src=\""+oldValue+"\""))
+                        {
+                            row = row.replace(matcher.group(0), "src=\"" + fileNameCopy + "\"");
+                            LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy);
+                            LogManager.getMyLogger(LoggerType.ConsoleLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy);
                         }
                     }
                     newFileContent = newFileContent + row + System.lineSeparator();
                 }
+                readLockFile.unlock();
                 myReader.close();
+                writeLockFile.lock();
                 FileWriter writer = new FileWriter(pathToSite);
                 writer.write(newFileContent);
                 writer.close();
+                writeLockFile.unlock();
             }
+
         }
+
     }
     /**
      * Has no purpose in this class, is used only for override

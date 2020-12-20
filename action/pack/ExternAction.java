@@ -8,6 +8,7 @@
 
 package action.pack;
 
+import java.net.MalformedURLException;
 import java.util.concurrent.BrokenBarrierException;
 
 /**
@@ -33,5 +34,5 @@ public abstract class ExternAction extends Action {
      * action class.
      * */
 
-    public abstract boolean runAction() throws BrokenBarrierException, InterruptedException;
+    public abstract boolean runAction() throws BrokenBarrierException, InterruptedException, MalformedURLException;
 }

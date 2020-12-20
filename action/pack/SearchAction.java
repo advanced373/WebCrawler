@@ -8,6 +8,8 @@
 
 package action.pack;
 
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
 import file_handlers.FileWorker;
 
 import java.awt.*;
@@ -20,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,6 +100,7 @@ public class SearchAction extends InternAction {
 
         if (listOfURLs.isEmpty()) {
             System.out.println("The keyword doesn't exist in index.json file!\n");
+            LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"The keyword doesn't exist in index.json file!");
         } else {
             for (int i = 0; i < listOfURLs.size(); i++) {
                 String pathToFile = listOfURLs.get(i).toString();
@@ -108,7 +112,7 @@ public class SearchAction extends InternAction {
                 System.out.println("File: " + pathToFile);
                 if (!lines.isEmpty()) {
                     System.out.println(keyWord + " apper on lines: " + lines.toString() + "\n");
-
+                    LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,keyWord + " apper on lines: " + lines.toString()+" in file "+pathToFile);
                 }
             }
 
@@ -127,6 +131,7 @@ public class SearchAction extends InternAction {
             System.out.println("File: " + path.toString());
             if (!lines.isEmpty()) {
                 System.out.println(keyWord + " apper on lines: " + lines.toString());
+                LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,keyWord + " apper on lines: " + lines.toString());
 
                 //making an path to search in index file
                 //this path doesn't contain the root folder
@@ -136,11 +141,13 @@ public class SearchAction extends InternAction {
 
                 if (fileWorkerObj.addKeywordToIndexFile(rootPath + "\\index.json", keyWord, filePathToSearch)) {
                     System.out.println("The new keyword was added to index.json file!\n");
+                    LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"The new keyword" + keyWord+ " was added to index.json file!\n");
                 } else {
                     System.out.println("Failed to add new keyword in index.json file!\n");
                 }
             } else {
                 System.out.println(keyWord + " doesn't appear in this file!\n");
+                LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,keyWord + " doesn't appear in this file!\n");
             }
         }
 

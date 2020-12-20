@@ -20,7 +20,12 @@ import java.util.regex.Pattern;
  */
 
 public class FileWorker {
-    FileWork fileWork;
+    private FileWork fileWork;
+    private HTMLFileWork htmlFileWork  = new HTMLFileWork();
+
+    public FileWorker() throws FileNotFoundException {
+    }
+
     /**
      * Function responsible for reading Seed URLs ( we call seed because we'll also read URLs from
      * this site).
@@ -441,11 +446,11 @@ public class FileWorker {
      * @author Stoica Mihai
      */
     public ArrayList<String> readFromHTMLFile(String siteURL, String path) throws IOException {
-        fileWork = new HTMLFileWork();
+        //fileWork = new HTMLFileWork();
         String bothValues = siteURL+"!"+path;
-        ArrayList<String> URLs=fileWork.read(bothValues);
-       // fileWork.write(path,siteURL);
-        fileWork = null;
+        ArrayList<String> URLs;
+        URLs=htmlFileWork.read(bothValues);
+        htmlFileWork.write(path,siteURL);
         return URLs;
     }
 

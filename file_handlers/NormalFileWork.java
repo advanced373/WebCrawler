@@ -29,7 +29,6 @@ public class NormalFileWork extends FileWork{
                 String data = myReader.nextLine();
                 lines.add(data);
             }
-            //System.out.println("Successfully read from file " + fileName );
             myReader.close();
         } catch (FileNotFoundException e) {
             throw e;

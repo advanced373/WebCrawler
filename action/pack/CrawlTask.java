@@ -1,5 +1,7 @@
 package action.pack;
 
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
 import file_handlers.CheckFileType;
 import file_handlers.FileWorker;
 
@@ -10,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.logging.Level;
 
 
 import javax.imageio.ImageIO;
@@ -66,20 +69,23 @@ public abstract class CrawlTask implements Runnable{
             URL url=new URL(this.urlToCrawl);
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
             if(connection.getResponseCode()<200 || 226 < connection.getResponseCode()) {
-                System.out.println(connection.getResponseMessage());
+                //this.webCrawler.decrementCountDownloadedPage();
+                LogManager.getMyLogger(LoggerType.FileLogger).log(Level.WARNING,"Code : "+connection.getResponseCode()+" "+ connection.getResponseMessage());
                 return;
             }
-
             InputStream inputStream=connection.getInputStream();
             String path=this.getPath(url);
             String strURL = this.getURL(url);
             this.writePage(strURL, path,inputStream);
+            LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"Code : "+connection.getResponseCode()+" "+ connection.getResponseMessage()+" "+this.urlToCrawl);
             inputStream.close();
             connection.disconnect();
-
-
-            FileWorker fileWorker = new FileWorker();
-            ArrayList<String> URLs = fileWorker.readFromHTMLFile(this.urlToCrawl,path);
+            ArrayList<String> URLs;
+            synchronized (this.webCrawler.fileWorker)
+            {
+                FileWorker fileWorker = this.webCrawler.fileWorker;
+                URLs= fileWorker.readFromHTMLFile(this.urlToCrawl,path);
+            }
             this.addUrlLinkedQueue( URLs );
             CheckFileType checkFileType = new CheckFileType();
             if(this.webCrawler.cyclicBarrier.getNumberWaiting()==1 &&
@@ -93,11 +99,11 @@ public abstract class CrawlTask implements Runnable{
                 File file=new File( path );
                 if (!file.delete()) {
                 }
-            }else {
+            }
+            else if(this.webCrawler.getFlagExtension()==1 && Util.checkUrlExtension(this.webCrawler.extension, this.urlToCrawl ))
+            {
                 this.webCrawler.addCountDownloadedPage();
             }
-            System.out.println(this.urlToCrawl);
-
             Thread.sleep(this.delay);
 
     }
@@ -136,8 +142,6 @@ public abstract class CrawlTask implements Runnable{
                 outputStream.write(bytes,0,read);
             }
             outputStream.close();
-
-
 
             FileWorker fileWorkerObj = new FileWorker();
 
@@ -239,11 +243,19 @@ public abstract class CrawlTask implements Runnable{
      * @param URLs URLs extracted from the downloaded page
      */
 
-    private void addUrlLinkedQueue(ArrayList<String> URLs)  {
+    private void addUrlLinkedQueue(ArrayList<String> URLs) throws IOException {
         if (URLs==null)
             return;
         for (String url:URLs)
+        {
             this.webCrawler.linksQueue.add( url );
+            synchronized(LogManager.mutex)
+            {
+                LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,url);
+            }
+
+        }
+
     }
 
     /**

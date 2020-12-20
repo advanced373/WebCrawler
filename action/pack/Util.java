@@ -30,8 +30,12 @@ public class Util {
      * @throws MalformedURLException if String param is not a valid URL
      */
     private static String getFileExtension(String file) throws MalformedURLException {
+        if(file == null)
+            return "";
         URL url = new URL( file );
         String path = url.getPath();
+        //if( path == null)
+            //return "";
         if (path.lastIndexOf( "." ) != -1 && path.lastIndexOf( "." ) != 0)
             return path.substring( path.lastIndexOf( "." ) + 1 );
         else return "";
@@ -40,7 +44,9 @@ public class Util {
     public static boolean checkUrlExtension(ArrayList<String> allExtension, String url) throws MalformedURLException {
 
         String extension = null;
-            extension = getFileExtension( url );
+        extension = getFileExtension( url );
+        //if(extension == null)
+            //return false;
         if ("".equals( extension )) {
             for (String ext : allExtension) {
                 if (ext.equals( extension ))
