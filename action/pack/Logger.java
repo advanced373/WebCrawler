@@ -64,7 +64,8 @@ public class Logger {
                     this.actionObj = new HelpAction("man/crawlman.txt");
                     return;
                 } else {
-                    param.add(attributes[1]);
+                    for(int i=1;i<attributes.length;i++)
+                        param.add(attributes[i]);
                 }
             } else {
                 param.add("no");
@@ -88,7 +89,8 @@ public class Logger {
                     }
                 }
             }
-            throw new CrawlerException("210", "Missing arguments.\nPlease check man page with 'Search help' command");
+            else
+                throw new CrawlerException("210", "Missing arguments.\nPlease check man page with 'Search help' command");
         }
         if (option.equals("Sitemap")) {
             if (attributes.length > 1) {

@@ -11,6 +11,7 @@ package crawler_log;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.*;
 
 /**
@@ -24,6 +25,7 @@ public class LogManager {
     private static LogManager singleInstance;
     private static Logger consoleLogger;
     private static Logger fileLogger;
+    public static ReentrantLock mutex = new ReentrantLock();
     private LogManager() {
     }
 
@@ -51,14 +53,14 @@ public class LogManager {
      * @return
      * @throws IOException
      */
-    public static Logger getLogger(LoggerType type) throws IOException {
+    public static Logger getMyLogger(LoggerType type) throws IOException {
         if (type == LoggerType.FileLogger && fileLogger == null) {
             fileLogger = Logger.getLogger("CrawlerFileLog");
             fileLogger.setUseParentHandlers(false);
-            Handler fileHandler = new FileHandler("logger.log", 20000, 1,true);
+            Handler fileHandler = new FileHandler("logger.log");
             FileLogFormatter fileLogFormatter = new FileLogFormatter();
             fileHandler.setFormatter(fileLogFormatter);
-            fileHandler.setLevel(Level.ALL);
+            fileLogger.setLevel(Level.ALL);
             fileHandler.setLevel(Level.ALL);
             fileLogger.addHandler(fileHandler);
             return fileLogger;

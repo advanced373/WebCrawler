@@ -41,9 +41,14 @@ public class HTMLFileWork extends FileWork{
      * @return list of URLs
      */
     private final String fileName="help.txt";
+    public HTMLFileWork() throws FileNotFoundException {
+        File file = new File(fileName);
+        PrintWriter writer = new PrintWriter(file);
+        writer.print("");
+        writer.close();
+    }
     @Override
     protected  ArrayList<String> read(String bothValues) throws IOException {
-
         String parts[];
         parts = bothValues.split("!");
         String fileName = parts[1];
@@ -54,8 +59,8 @@ public class HTMLFileWork extends FileWork{
         }
         Pattern pattern;
         Matcher matcher;
+        String stringWriteToHelp="";
         readLockFile.lock();
-        FileWriter valuesForWrite = new FileWriter(this.fileName,true);
         pattern=Pattern.compile("([^\\s]+(\\.(?i)(html|php))$)");
         matcher = pattern.matcher(fileName);
         if(!matcher.matches()){
@@ -84,9 +89,7 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("href=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
-                writeLockHelpFile.lock();
-                valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
-                writeLockHelpFile.unlock();
+                stringWriteToHelp+=(fileName + " " +helperNormalization+" "+dataToSend+"\n");
                 URLs.add(helperNormalization);
                 i++;
             }
@@ -96,16 +99,19 @@ public class HTMLFileWork extends FileWork{
                 String dataToSend = matcher.group(0).replace("src=\"","");
                 dataToSend = dataToSend.substring(0,dataToSend.length()-1);
                 helperNormalization = URLNormalization.URLProcessing(helpURL,dataToSend);
-                writeLockHelpFile.lock();
-                valuesForWrite.write(fileName + " " +helperNormalization+" "+dataToSend+"\n");
-                writeLockHelpFile.unlock();
+                stringWriteToHelp+=(fileName + " " +helperNormalization+" "+dataToSend+"\n");
                 URLs.add(helperNormalization);
                 i++;
             }
         }
-        valuesForWrite.close();
         myReader.close();
         readLockFile.unlock();
+        writeLockHelpFile.lock();
+        FileWriter valuesForWrite = new FileWriter(this.fileName,true);
+        valuesForWrite.write(stringWriteToHelp);
+        valuesForWrite.close();
+        writeLockHelpFile.unlock();
+
         return URLs;
     }
     /**
@@ -121,12 +127,10 @@ public class HTMLFileWork extends FileWork{
         String siteUrlHelper = data;
         int index = siteUrlHelper.indexOf("://");
         if (index != -1) {
-            // keep everything after the "://"
             siteUrlHelper = siteUrlHelper.substring(index + 3);
         }
         index = siteUrlHelper.indexOf('/');
         if (index != -1) {
-            // keep everything before the '/'
             siteUrlHelper = siteUrlHelper.substring(index);
         }
         if(index == siteUrlHelper.length())
@@ -146,10 +150,12 @@ public class HTMLFileWork extends FileWork{
             Scanner myReaderValues = new Scanner(inFile);
             while (myReaderValues.hasNextLine()) {
                 String row = myReaderValues.nextLine();
+                row = row.replaceAll("\n"," ");
                 filesForHelp = row.split(" ");
                 if (data.equals(filesForHelp[1]) == true) {
                     pathToSite = filesForHelp[0];
                     oldValue = filesForHelp[2];
+                    break;
                 }
             }
             readLockHelpFile.unlock();
@@ -159,7 +165,6 @@ public class HTMLFileWork extends FileWork{
                 Matcher matcher;
                 Pattern pattern;
                 Scanner myReader = new Scanner(f);
-                System.out.println(oldValue+"\n");
                 while (myReader.hasNextLine()) {
                     String row = myReader.nextLine();
                     pattern = Pattern.compile("href=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"|href=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"|src=\"\\b(([\\w-]+://?|www[.])[^\\s()<>]+(?:\\([\\w\\d]+\\)|([^[:punct:]\\s]|/)))\"|src=\"(?://(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\\.[A-Za-z0-9\\-._~!$&'()*+,;=:]+)\\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|/(?:(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:/(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\\?(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?(?:\\#(?:[A-Za-z0-9\\-._~!$&'()*+,;=:@/?]|%[0-9A-Fa-f]{2})*)?\"");
@@ -168,8 +173,14 @@ public class HTMLFileWork extends FileWork{
                         if(matcher.group(0).equals("href=\""+oldValue+"\""))
                         {
                             row = row.replace(matcher.group(0), "href=\"" + fileNameCopy + "\"");
-                            LogManager.getLogger(LoggerType.FileLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+"\n");
-                            LogManager.getLogger(LoggerType.ConsoleLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+"\n");
+                            LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+" in file "+pathToSite);
+                            LogManager.getMyLogger(LoggerType.ConsoleLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy+" in file "+pathToSite);
+                        }
+                        if(matcher.group(0).equals("src=\""+oldValue+"\""))
+                        {
+                            row = row.replace(matcher.group(0), "src=\"" + fileNameCopy + "\"");
+                            LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy);
+                            LogManager.getMyLogger(LoggerType.ConsoleLogger).log(Level.INFO,"Link "+matcher.group(0)+"was modified with "+fileNameCopy);
                         }
                     }
                     newFileContent = newFileContent + row + System.lineSeparator();

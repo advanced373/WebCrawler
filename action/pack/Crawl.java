@@ -7,6 +7,7 @@ import action.pack.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -93,7 +94,7 @@ public class Crawl extends ExternAction {
      */
     public final ArrayList<String> extension = new ArrayList<>();
 
-
+    protected final FileWorker fileWorker = new FileWorker();
     /**
      * CrawlTask constructor
      *
@@ -111,10 +112,11 @@ public class Crawl extends ExternAction {
         this.cyclicBarrier = new CyclicBarrier(2);
         this.threadPoolExecutor = null;
         this.countPagesDownload = 0;
-
         FileWorker fileWorker = new FileWorker();
         ArrayList<String> confParam;
         this.urlsToCrawl = fileWorker.ReadFromURLsFile(this.fileNameUrlList);
+        if(this.urlsToCrawl.size() == 0)
+            throw new CrawlerException("314","Seed File is null!");
         confParam = fileWorker.readFromConfigureFile(this.fileNameConf);
         this.parseParam(confParam);
 
@@ -131,7 +133,7 @@ public class Crawl extends ExternAction {
      * This method call execute function
      */
     @Override
-    public boolean runAction() throws BrokenBarrierException, InterruptedException {
+    public boolean runAction() throws BrokenBarrierException, InterruptedException, MalformedURLException {
         return this.execute();
     }
 
@@ -140,7 +142,7 @@ public class Crawl extends ExternAction {
      * each thread to download one page at a time.
      */
 
-    public boolean execute() throws InterruptedException, BrokenBarrierException {
+    public boolean execute() throws InterruptedException, BrokenBarrierException, MalformedURLException {
 
         this.indexfile = new File(rootDir + "\\index.json");
 
@@ -164,15 +166,16 @@ public class Crawl extends ExternAction {
                 if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() > 0) {
                     this.cyclicBarrier.await();
                 }
-
             }
             if (this.linksQueue.isEmpty() && this.threadPoolExecutor.getActiveCount() < 1)
                 break;
-
+            if(this.flagExtension == 0 )
+                this.addCountDownloadedPage();
         }
-
-        this.threadPoolExecutor.shutdown();
-
+        if(this.flagExtension == 1)
+            this.threadPoolExecutor.shutdownNow();
+        else
+            this.threadPoolExecutor.shutdown();
         boolean retValue = this.threadPoolExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
         if (this.flagExtension == 1)
             this.deleteFolder(this.rootDir);
@@ -299,7 +302,11 @@ public class Crawl extends ExternAction {
             this.countPagesDownload++;
         }
     }
-
+    public void decrementCountDownloadedPage() {
+        synchronized (this) {
+            this.countPagesDownload--;
+        }
+    }
     /**
      * deletes the empty folder when only certain file types are downloaded
      *

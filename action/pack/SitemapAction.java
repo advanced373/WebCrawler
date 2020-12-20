@@ -8,9 +8,13 @@
 
 package action.pack;
 
+import crawler_log.LogManager;
+import crawler_log.LoggerType;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.File;
+import java.util.logging.Level;
 
 /**
  * Class for generating website sitemap
@@ -37,7 +41,7 @@ public class SitemapAction extends InternAction {
     public SitemapAction(String filePath) {
         super(filePath);
         this.currentFile = new File(filePath);
-        this.sitemapFile = "D:\\Sitemaps\\" + currentFile.getName() + ".txt";
+        this.sitemapFile = "C:\\Sitemaps\\" + currentFile.getName() + ".txt";
     }
 
     /**
@@ -57,6 +61,7 @@ public class SitemapAction extends InternAction {
         FileWriter myWriter = new FileWriter(siteMap);
         myWriter.write(currentFile.getName() + "\n");
         generateSitemap(currentFile, myWriter);
+        LogManager.getMyLogger(LoggerType.FileLogger).log(Level.INFO,"Sitemap for "+this.sitemapFile+" was generated!");
         myWriter.close();
         //de apelat logger
         return true;
